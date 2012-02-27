@@ -1,0 +1,48 @@
+<?php
+/**
+ * @file osu_wordpress.module
+ *  Provides a custom parser for the Feeds Display module
+ *  to parse RSS from the OSU News site
+ */
+
+
+ /**
+  * @returns
+  *   A configuration array for this parser
+  */
+ function osu_wordpress_config() {
+   $feed_config = array(
+    'feed_type'   => 'osu_wordpress',
+    'feed_title' => 'OSU WordPress',
+    'feed_url'    => 'http://blogs.oregonstate.edu/feed/rss2',
+  );
+  return $feed_config;
+}
+
+
+ /**
+ * Parse the RSS and display the feed
+ *
+ * @param $feed_url
+ *  A string containing he URL of the feed
+ * @param $num_items
+ *  An integer containing the number of items to display
+ *
+ * @return
+ *  A string with the formated HTML to display
+ */
+function osu_wordpress_feeds_display_parser($feed_url, $num_items) {
+  $xml = simplexml_load_file("$feed_url");
+
+  foreach ($xml->channel->item as $story) {
+    if (++$items > $num_items) break;
+
+    $date = date('M j, Y', strtotime($story->pubDate));
+
+    $content .= '<div class="news-item">';
+    $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3>';
+    $content .= '- <div class="date">' . $date . '</div> <br />';
+    $content .= '<div class="news-body">' . $story->description . '&nbsp;<a href="' . $story->link . '">Read full story.</a></div></div>';
+  }
+  return $content;
+}

@@ -1,0 +1,6 @@
+; $Id
+name =  Feeds Display
+description = A module to create blocks for custom feeds
+package = Other
+core = 6.x
+version = 6.x-1.0.0

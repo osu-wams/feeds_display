@@ -1,0 +1,132 @@
+<?php
+/**
+ * @file osu_events.php
+ *  Provides a custom parser for the Feeds Display module
+ *  to parse RSS from the OSU Events Calendar
+ */
+
+
+ /**
+  * @returns
+  *   A configuration array for this parser
+  */
+ function osu_events_config() {
+   $feed_config = array(
+    'feed_type'   => 'osu_events',
+    'feed_title'  => 'OSU Events',
+    'feed_url'    => 'http://calendar.oregonstate.edu/osu/rss20.xml',
+  );
+  return $feed_config;
+}
+
+/** 
+ * Implementation of hook_form_alter
+ *
+ */ 
+function osu_events_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'feed_node_form') {
+    drupal_add_js( drupal_get_path('module', 'osu_events') . '/osu_events.js');
+    $form['feeds_display_form']['date_style'] = array(
+      '#type'          => 'select',
+      '#title'         => t('The style of the date in event items'),
+      '#description'   => t('Select the classic OSU Standard style, or the new Calendar style.'),
+      '#options'       => array( 'classic' => 'Classic', 'calendar' => 'Calendar'),
+		  '#default_value' => variable_get('osu_events_date_style', 'classic'),
+    );
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi
+ *
+ */ 
+function osu_events_nodeapi(&$node, $op) {
+  if ($node->type == 'feed' && $node->feed_type == 'osu_events' ) {
+    if ($op == 'insert' || $op == 'update') {
+        variable_set('osu_events_date_style', $node->date_style);
+    }
+  }
+}
+
+
+ /**
+ * Parse the RSS and display the feed
+ *
+ * @param $feed_url
+ *  A string containing he URL of the feed
+ * @param $num_items
+ *  An integer containing the number of items to display
+ *
+ * @return
+ *  A string with the formated HTML to display
+ */
+function osu_events_feeds_display_parser($feed_url, $num_items) {
+  $xml = simplexml_load_file("$feed_url");
+  $html = new DOMDocument; // Need this to parse the description
+
+  $date_style =  variable_get('osu_events_date_style', 'classic');
+
+  foreach ($xml->channel->item as $event) {
+    if (++$items > $num_items) break;
+
+    // Get the event data
+    $title = $event->title;
+    $link  = $event->link;
+    $desc  = $event->description;
+
+    // Remove the date div from the description
+    $html->loadHTMl( (string) $desc);
+    $date = $html->getElementsByTagName('div')->item(0);
+    $div = $date->parentNode;
+    $div->removeChild($date);
+
+    $desc = utf8_decode( $html->saveXML($div));
+
+    // Start and end dates use the osu namespace
+    $nodes = $event->children('edu.oregonstate.calendar', true);
+    $start = $nodes->dtstart;
+    $end   = $nodes->dtend;
+
+    // Parse the date
+    $date  = strtotime($start);
+    $day   = date('d', $date);
+    $month = date('M', $date);
+    $year  = date('Y', $date);
+
+    // Trucate the body and fix all unclosed tags
+    $body = feeds_display_truncate_words(trim($desc), 30);
+    $tidy = new tidy();
+    $body = $tidy->repairString($body, array('show-body-only' => 1));
+
+    // Build output string
+    $content .= '<div class="calendar-item">';  
+    $content .= '<div class="date ' . $date_style . '">';
+    if ($date_style == 'classic') {
+      $content .= '<span class="day">';
+      $content .= $day;
+      $content .= '</span><span class="month">';
+      $content .= $month;
+      $content .= '</span><span class="year">';
+      $content .= $year;
+      $content .= '</span></div>';
+    }
+    else {
+      $content .= '<div class="month">';
+      $content .= $month;
+      $content .= '</div><div class="day-year"><div class="day">';
+      $content .= $day;
+      $content .= '</div><div class="year">';
+      $content .= $year;
+      $content .= '</div></div></div>';
+    }
+    $content .= '<div class="description"><p class="title">';
+    $content .= '<a href="' . $link . '">';
+    $content .= '<strong>' . $title . '</strong></a></p>';
+    $content .= $body . '&hellip;</div></div>';
+  }
+  $content .= '<a href="http://calendar.oregonstate.edu/">View the Entire Calendar</a>';
+
+  return $content;
+}
+
+

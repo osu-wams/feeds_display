@@ -1,0 +1,374 @@
+<?php
+/**
+ * @file
+ * feeds_display.module
+ *
+ * Created:    4/27/2011
+ * Author(s):  Paul Lieberman - Central Web Services - Oregon State University
+ *
+ * Purpose:   A Drupal module to process custom feeds based on installed parsers
+ *
+ * Modified:
+ *
+ * To-do:
+ *	 Edit exisiting feed - hook_update
+ *   Delete existing feed - hook_delete
+ *   Make sure parsers are honoring number of items to display
+ *
+ */
+
+
+/**
+ * Implements hook_init()
+*/
+function feeds_display_init() {
+
+  // Add CSS and Javascript for top-level module
+  drupal_add_css( drupal_get_path('module', 'feeds_display') . '/feeds_display.css');
+  drupal_add_js( drupal_get_path('module', 'feeds_display') . '/feeds_display.js');
+
+  // Get the parsers and add them to the Javascript settings array
+  $parsers = feeds_display_get_available_parsers();
+  drupal_add_js(array('feeds_display' => $parsers), 'setting');
+
+  // Add CSS for each parser
+  foreach ($parsers as $module => $values) {
+    drupal_add_css( drupal_get_path('module', $module) . '/' . $module . '.css');
+  }
+}
+
+
+/**
+ * Implements hook_node_info()
+ */
+function feeds_display_node_info() {
+  return array(
+    'feed'        => array(
+      'name'        => t('Feed'),
+      'module'      => 'feeds_display',
+      'description' => t("A Feed is a summary of items or events from another source."),
+    )
+  );
+}
+
+/**
+ * Impelements hook_help()
+ */
+function feeds_display_help($path, $arg){
+  switch($path) {
+    case 'node/add#feed':
+      return t('A Feed. Use this page to add a feed.');
+    case 'admin/help#feed':
+      return t('<p>A module for creating and viewing feeds.</p>');
+  }
+}
+
+
+/**
+ * Implements hook_perm()
+ */
+function feeds_display_perm(){
+  return array('create feed', 'edit feed');
+}
+
+
+/**
+ * Implementation of hook_menu()
+ *
+ * Add a link to the Site Configuration menu
+ */
+function feeds_display_menu() {
+  $module_name  = "feeds_display";
+  $module_title = "Feeds Display";
+
+  $items = array();
+
+  $items['admin/settings/'.$module_name] = array(
+    'title'            => $module_title,
+    'description'      => 'Manage settings for Feeds Display',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array($module_name.'_admin'),
+    'access arguments' => array('access administration pages'),
+    'type'             => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Admin settings page
+ *
+ */
+function feeds_display_admin() {
+
+  $form['feeds_display_admin'] = array(
+    '#type'   => 'markup',
+    '#title'  => t('Feeds Display settings'),
+    '#value'  => t('<p>There are no configuration options available at this time.</p>'),
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Implementation of hook_form()
+ *
+ *
+ */
+function feeds_display_form(&$node) {
+
+  // Get the list of available parser plugins
+  $parsers = feeds_display_get_available_parsers();
+  if (!$parsers) {
+    drupal_set_message(t('No available parsers'));
+  }
+  $options = array('select' => 'Select feed type');
+  foreach ($parsers as $parser => $info) {
+    $options[$parser] = $info['name'];
+  }
+
+
+	if($nid = $node->nid) {
+		$query = db_query("SELECT * from {feeds_display} where nid = '%d'", $nid);
+    $feed = db_fetch_object($query);
+	}
+
+
+  // The feed type - based on available parsers
+  $form['feeds_display_form']['feed_type'] = array(
+    '#type'          => 'select',
+    '#title'         => t('The type of feed'),
+    '#description'   => t('Select which type of feed you want to configure.'),
+    '#options'       => $options,
+		'#default_value' => $feed->feed_type,
+  );
+
+  // The block title
+  $form['feeds_display_form']['title'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Block Title'),
+    '#description'   => t('This is name you will see in the Blocks list'),
+    '#required'      => TRUE,
+		'#default_value' => $node->title,
+  );
+
+  // The feed URL
+  $form['feeds_display_form']['feed_url'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('URL of your feed'),
+    '#description'   => t('This is the URL of your feed. It will normally be an .rss or .xml file'),
+    '#required'      => TRUE,
+		'#default_value' => $feed->feed_url,
+  );
+
+  // Number of items to display
+  $form['feeds_display_form']['num_items'] = array(
+    '#type'   => 'textfield',
+    '#title'  => t('Number of items to display'),
+    '#default_value' => $feed->num_items ? $feed->num_items : '5',
+    '#description' => t('Please enter the number of items you want displayed'),
+    '#required' => TRUE,
+  );
+
+  $form['feeds_display_form']['#submit'] = array('feeds_display_submit_handler');
+
+  return $form;
+}
+
+
+/**
+ * Implementation of hook_validate.
+ *
+ */
+function feeds_display_validate($node) {
+  if ( $node->feed_type == 'select') {
+    form_set_error('', t('Please select a feed type'));
+  }
+  elseif ( ! preg_match("/^http/", $node->feed_url )) {
+    form_set_error('feeds_display_form][feed_url', t('Please provide a valid feed URL'));
+  }
+}
+
+
+/**
+* Implementation of hook_form_alter().
+*
+*/
+function feeds_display_form_alter(&$form, &$form_state, $form_id) {
+}
+
+/**
+ * Implements hook_insert()
+ */
+function feeds_display_insert($node) {
+
+  // Insert a record into our table
+  $feed = array(
+    'nid'        => $node->nid,
+    'bid'        => 0,
+    'feed_title' => $node->title,
+    'feed_url'   => $node->feed_url,
+    'feed_type'  => $node->feed_type,
+    'num_items'  => $node->num_items,
+  );
+
+  drupal_write_record('feeds_display', $feed);
+  drupal_set_message(t('Once your feed is created you can  go to the Blocks page and add the feed to a region in your theme.'));
+}
+
+/**
+ * Implements hook_update()
+ */
+function feeds_display_update($node) {
+
+	// Update a record in our table
+  $feed = array(
+    'nid'        => $node->nid,
+    'feed_title' => $node->title,
+    'feed_url'   => $node->feed_url,
+    'feed_type'  => $node->feed_type,
+    'num_items'  => $node->num_items,
+  );
+
+	drupal_write_record('feeds_display', $feed, 'nid');
+}
+
+
+/**
+ * Implements hook_delete()
+ */
+function feeds_display_delete($node) {
+  db_query('DELETE FROM {feeds_display} WHERE nid = %d', $node->nid);
+}
+
+
+
+/**
+ * Implementation of hook_block().
+ *
+ * When Drupal is instaniated this hook will read the database and
+ * create the blocks for each of our feeds.
+ */
+function feeds_display_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+
+      // Read our feeds from the db
+      // and create the block for each one
+      $query = db_query("SELECT * from {feeds_display} ");
+       while ($feed = db_fetch_object($query)) {
+        $blocks[$feed->fid] = array(
+          'info'        => t($feed->feed_title),
+          'title'       => t($feed->feed_title),
+          'visibility'  => 1,
+          'pages'       => '<front>',
+          'cache'       => BLOCK_NO_CACHE,
+        );
+      }
+
+      return $blocks;
+
+    case 'view':
+      // Read our feeds from the db
+      $query = db_query("SELECT * from {feeds_display} where fid = '%d'", $delta);
+      $feed = db_fetch_object($query);
+      $content = load_feed($feed->feed_type, $feed->feed_url, $feed->num_items);
+      $block = array(
+        'subject'   =>  t($feed->feed_title),
+        'content'   =>  $content,
+        'link'      =>  $feed->feed_url,
+      );
+      return $block;
+  }
+}
+
+/**
+ * Calls the correct parser for this feed type
+ *
+ * @param $feed_type
+ *  A string containing the feed type
+ * @param $feed_url
+ *  A string contianing the URL
+ * @param $num_items
+ *  An integer containing the number of items to display
+ *
+ */
+function load_feed($feed_type, $feed_url, $num_items) {
+
+  $parsers = feeds_display_get_available_parsers();
+  if ($parsers[$feed_type]) {
+    $func = $feed_type . '_feeds_display_parser';
+    return $func($feed_url, $num_items);
+  }
+}
+
+/**
+ * Implementation of hook_theme
+ *
+ * Register our template
+ *
+ */
+function feeds_display_theme() {
+  $theme['feeds_display_block'] = array(
+      'arguments' => array('block' => NULL),
+      'template'  => 'feeds-display-block',
+      'path'      => drupal_get_path('module', 'feeds_display') . '/templates',
+  );
+  return $theme;
+}
+
+
+/**
+ * Implementation of hook_preprocess_block
+ *
+ * Make the block title a link.
+ * Theme the content using our template
+ *
+ */
+function feeds_display_preprocess_block(&$vars) {
+  if ($vars['block']->module == 'feeds_display') {
+    // Uncomment this to make the block title links to the rss feed
+    // $vars['block']->subject = l($vars['block']->subject, $vars['block']->link, array('attributes' => array('class' => 'rss-link'), 'html'=>'true'));
+    $vars['block']->content = theme('feeds_display_block', $vars['block']);
+  }
+}
+
+
+/**
+ * Return a list of available parsers.
+ *
+ * @return
+ *   An array of the enabled feed parser modules. The module name is the key
+ *   and the value is a sub-array with the module's 'name' and 'description'.
+ */
+function feeds_display_get_available_parsers() {
+  static $parsers;
+
+  if (!isset($parsers)) {
+    $parsers = array();
+    foreach (module_implements('feeds_display_parser', TRUE) as $module) {
+      $info = drupal_parse_info_file(drupal_get_path('module', $module) .'/'. $module .'.info');
+      $func = $module . '_config';
+      $config = $func();
+
+      $parsers[$module] = array(
+        'name'        => $info['name'],
+        'description' => $info['description'],
+        'title'       => $config['feed_title'],
+        'url'         => $config['feed_url'],
+      );
+    }
+  }
+
+  return $parsers;
+}
+
+/*
+ * Function to truncate a string to given number of words.
+ * Can be used by parser modules
+ */ 
+function feeds_display_truncate_words($string, $words){
+  $string = explode(' ', $string);
+  if (count($string) > $words) {
+    return implode(' ', array_slice($string, 0, $words));
+  }
+  return implode(' ', $string);
+}
