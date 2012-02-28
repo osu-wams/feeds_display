@@ -1,0 +1,18 @@
+<?php
+/**
+ */
+function osu_events_install() {
+}
+
+function osu_events_uninstall() {
+}
+
+/**
+ * Extend schema for view entire calendar link
+ *
+ */ 
+function osu_events_update_6001() {
+
+
+
+}
