@@ -10,10 +10,12 @@
  *
  * Modified:
  *
- * To-do:
- *	 Edit exisiting feed - hook_update
- *   Delete existing feed - hook_delete
- *   Make sure parsers are honoring number of items to display
+ * @todo:
+ *	 Edit exisiting feed - hook_update - done
+ *   Delete existing feed - hook_delete -done
+ *   Make sure parsers are honoring number of items to display - done (I think)
+ *
+ *    Add hook_load and hook_view
  *
  */
 
@@ -227,8 +229,7 @@ function feeds_display_update($node) {
     'feed_type'  => $node->feed_type,
     'num_items'  => $node->num_items,
   );
-
-	drupal_write_record('feeds_display', $feed, 'nid');
+  drupal_write_record('feeds_display', $feed, 'nid');
 }
 
 

@@ -3,6 +3,11 @@
  * @file osu_events.php
  *  Provides a custom parser for the Feeds Display module
  *  to parse RSS from the OSU Events Calendar
+ *
+ *  @todo
+ *    Option date display (Calendar)
+ *    Form field for link back to Calendar
+ *  
  */
 
 
@@ -25,7 +30,9 @@
  */ 
 function osu_events_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'feed_node_form') {
+
     drupal_add_js( drupal_get_path('module', 'osu_events') . '/osu_events.js');
+
     $form['feeds_display_form']['date_style'] = array(
       '#type'          => 'select',
       '#title'         => t('The style of the date in event items'),
@@ -39,12 +46,15 @@ function osu_events_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Implementation of hook_nodeapi
  *
+ * We have to save the extra fields for this module.
  */ 
 function osu_events_nodeapi(&$node, $op) {
   if ($node->type == 'feed' && $node->feed_type == 'osu_events' ) {
     if ($op == 'insert' || $op == 'update') {
+
         variable_set('osu_events_date_style', $node->date_style);
-    }
+
+     }
   }
 }
 
@@ -65,6 +75,10 @@ function osu_events_feeds_display_parser($feed_url, $num_items) {
   $html = new DOMDocument; // Need this to parse the description
 
   $date_style =  variable_get('osu_events_date_style', 'classic');
+
+  // Parse the feed_url to determine the calendar link
+  preg_match('/\/(\w+)\/rss20.xml/', $feed_url, $match);
+  $cal_link = 'http://calendar.oregonstate.edu/' . $match[1];
 
   foreach ($xml->channel->item as $event) {
     if (++$items > $num_items) break;
@@ -124,7 +138,7 @@ function osu_events_feeds_display_parser($feed_url, $num_items) {
     $content .= '<strong>' . $title . '</strong></a></p>';
     $content .= $body . '&hellip;</div></div>';
   }
-  $content .= '<a href="http://calendar.oregonstate.edu/">View the Entire Calendar</a>';
+  $content .= '<a href="' . $cal_link . '">View the Entire Calendar</a>';
 
   return $content;
 }
