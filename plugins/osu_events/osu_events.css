@@ -3,6 +3,12 @@
  *  Provide style for the OSU Events plugin for the Feeds Display module
  */
 
+
+.block-feeds-display h2 {
+  margin: 0 1em;
+  border-bottom: 1px solid #666;
+}
+
 #feeds-display .calendar-item {
   border-bottom: 1px dotted #999;
   clear: both;
@@ -48,9 +54,9 @@
 
 #feeds-display .calendar-item .date.calendar .day {
   color: #c34500;
-  font-size: 2.5em;
+  font-size: 2em;
   font-weight: bold;
-  margin-top: -2px;
+  margin-top: 4px;
 }
 
 #feeds-display .calendar-item .date.calendar .month {
@@ -62,7 +68,6 @@
 }
 
 #feeds-display .calendar-item .date.calendar .day-year {
-  margin-top: 2px;
   border-radius: 0 0 3px 3px;
   background-color: #f2f2f2;
   border: 1px solid #ccc;
@@ -71,7 +76,7 @@
 #feeds-display .calendar-item .date.calendar .year {
   color: #393939;
   font-size: 1.1em;
-  margin: -5px 0 3px;
+  margin-top: 2px;
 }
 
 #feeds-display .calendar-item .description {

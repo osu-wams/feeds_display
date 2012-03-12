@@ -31,7 +31,7 @@
 ?>
 
 <div id='feeds-display'>
-  <a class='rss-icon' href='<?php print $block->link ?>'>
+  <a class='rss-icon' href='<?php print $link ?>'>
   <img src='http://oregonstate.edu/osuhomepage/images/rss_icon.png' width='16' height='16' /></a>
-  <?php print $block->content; ?>
+  <?php print $content; ?>
 </div>

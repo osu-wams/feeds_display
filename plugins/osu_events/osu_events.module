@@ -3,10 +3,6 @@
  * @file osu_events.php
  *  Provides a custom parser for the Feeds Display module
  *  to parse RSS from the OSU Events Calendar
- *
- *  @todo
- *    Option date display (Calendar)
- *    Form field for link back to Calendar
  *  
  */
 
@@ -28,7 +24,7 @@
  * Implementation of hook_form_alter
  *
  */ 
-function osu_events_form_alter(&$form, &$form_state, $form_id) {
+function not_osu_events_form_not_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'feed_node_form') {
 
     drupal_add_js( drupal_get_path('module', 'osu_events') . '/osu_events.js');
@@ -74,7 +70,10 @@ function osu_events_feeds_display_parser($feed_url, $num_items) {
   $xml = simplexml_load_file("$feed_url");
   $html = new DOMDocument; // Need this to parse the description
 
-  $date_style =  variable_get('osu_events_date_style', 'classic');
+  $items   = 0;
+  $content = '';
+
+  $date_style =  variable_get('osu_events_date_style', 'calendar');
 
   // Parse the feed_url to determine the calendar link
   preg_match('/\/(\w+)\/rss20.xml/', $feed_url, $match);

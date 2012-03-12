@@ -3,5 +3,5 @@ name =  OSU Announcements
 description = A plugin for Feeds Display to parse the RSS from the OSU Announcements
 dependencies[] = feeds_display
 package = OSU
-core = 6.x
-version = 6.x-0.1
+core = 7.x
+version = 7.x-0.1

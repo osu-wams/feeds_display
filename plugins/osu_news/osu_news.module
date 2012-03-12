@@ -33,6 +33,12 @@
  */
 function osu_news_feeds_display_parser($feed_url, $num_items) {
 
+  $items = 0;
+  $content = '';
+  $thumb = '';
+  $date_text = '';
+  $body = '';
+
  	$xml = simplexml_load_file("$feed_url");
 	$html = new DOMDocument; // Need this to parse the description
 

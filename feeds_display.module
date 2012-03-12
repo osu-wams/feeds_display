@@ -48,7 +48,11 @@ function feeds_display_node_info() {
     'feed'        => array(
       'name'        => t('Feed'),
       'module'      => 'feeds_display',
+      'base'        => 'feeds_display',
       'description' => t("A Feed is a summary of items or events from another source."),
+      'help'        => 'Create a feed.',
+      'title_label' => 'Feed',
+      'has_body'    => false,
     )
   );
 }
@@ -69,8 +73,14 @@ function feeds_display_help($path, $arg){
 /**
  * Implements hook_perm()
  */
-function feeds_display_perm(){
-  return array('create feed', 'edit feed');
+function feeds_display_permission(){
+  return array('create feed' => array(
+                  'title' => t('Create a new feed.'),
+                ), 
+               'edit feed'   => array(
+                  'title' => t('Edit an existing feed'),
+                )
+               );
 }
 
 
@@ -80,16 +90,14 @@ function feeds_display_perm(){
  * Add a link to the Site Configuration menu
  */
 function feeds_display_menu() {
-  $module_name  = "feeds_display";
-  $module_title = "Feeds Display";
 
   $items = array();
 
-  $items['admin/settings/'.$module_name] = array(
-    'title'            => $module_title,
+  $items['admin/config/content/feeds_display'] = array(
+    'title'            => 'Feeds Display',
     'description'      => 'Manage settings for Feeds Display',
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array($module_name.'_admin'),
+    'page arguments'   => array('feeds_display_admin'),
     'access arguments' => array('access administration pages'),
     'type'             => MENU_NORMAL_ITEM,
   );
@@ -105,7 +113,7 @@ function feeds_display_admin() {
   $form['feeds_display_admin'] = array(
     '#type'   => 'markup',
     '#title'  => t('Feeds Display settings'),
-    '#value'  => t('<p>There are no configuration options available at this time.</p>'),
+    '#markup' => t('<p>There are no configuration options available at this time.</p>'),
   );
   return system_settings_form($form);
 }
@@ -113,9 +121,8 @@ function feeds_display_admin() {
 /**
  * Implementation of hook_form()
  *
- *
  */
-function feeds_display_form(&$node) {
+function feeds_display_form(&$node, &$form_state) {
 
   // Get the list of available parser plugins
   $parsers = feeds_display_get_available_parsers();
@@ -127,12 +134,7 @@ function feeds_display_form(&$node) {
     $options[$parser] = $info['name'];
   }
 
-
-	if($nid = $node->nid) {
-		$query = db_query("SELECT * from {feeds_display} where nid = '%d'", $nid);
-    $feed = db_fetch_object($query);
-	}
-
+  $from = array();
 
   // The feed type - based on available parsers
   $form['feeds_display_form']['feed_type'] = array(
@@ -140,7 +142,7 @@ function feeds_display_form(&$node) {
     '#title'         => t('The type of feed'),
     '#description'   => t('Select which type of feed you want to configure.'),
     '#options'       => $options,
-		'#default_value' => $feed->feed_type,
+		'#default_value' => isset($node->feed_type) ? $node->feed_type : '',
   );
 
   // The block title
@@ -158,14 +160,14 @@ function feeds_display_form(&$node) {
     '#title'         => t('URL of your feed'),
     '#description'   => t('This is the URL of your feed. It will normally be an .rss or .xml file'),
     '#required'      => TRUE,
-		'#default_value' => $feed->feed_url,
+		'#default_value' => isset($node->feed_url) ? $node->feed_url: '',
   );
 
   // Number of items to display
   $form['feeds_display_form']['num_items'] = array(
     '#type'   => 'textfield',
     '#title'  => t('Number of items to display'),
-    '#default_value' => $feed->num_items ? $feed->num_items : '5',
+    '#default_value' => 5, //$feed->num_items ? $feed->num_items : '5',
     '#description' => t('Please enter the number of items you want displayed'),
     '#required' => TRUE,
   );
@@ -240,6 +242,22 @@ function feeds_display_delete($node) {
   db_query('DELETE FROM {feeds_display} WHERE nid = %d', $node->nid);
 }
 
+/**
+ * Implements hook_load()
+ */
+function feeds_display_load($nodes) {
+
+  $nids = array_keys($nodes);
+  $nid  = $nids[0];
+  $node = $nodes[$nid];
+
+  $result = db_query("SELECT feed_type, feed_url, num_items FROM {feeds_display} WHERE nid = :nid", array(':nid' => $nid));
+  foreach ($result as $feed ) {
+    $node->feed_url  = $feed->feed_url;
+    $node->feed_type = $feed->feed_type;
+    $node->num_items = $feed->num_items;
+  }
+}
 
 
 /**
@@ -248,37 +266,35 @@ function feeds_display_delete($node) {
  * When Drupal is instaniated this hook will read the database and
  * create the blocks for each of our feeds.
  */
-function feeds_display_block($op = 'list', $delta = 0, $edit = array()) {
-  switch ($op) {
-    case 'list':
+function feeds_display_block_info() {
 
-      // Read our feeds from the db
-      // and create the block for each one
-      $query = db_query("SELECT * from {feeds_display} ");
-       while ($feed = db_fetch_object($query)) {
-        $blocks[$feed->fid] = array(
+  // Read our feeds from the db
+  // and create the block for each one
+  $result = db_query("SELECT * FROM {feeds_display}");
+  foreach ($result as $feed ) {
+    $blocks[$feed->fid] = array(
           'info'        => t($feed->feed_title),
           'title'       => t($feed->feed_title),
           'visibility'  => 1,
           'pages'       => '<front>',
-          'cache'       => BLOCK_NO_CACHE,
-        );
-      }
-
-      return $blocks;
-
-    case 'view':
-      // Read our feeds from the db
-      $query = db_query("SELECT * from {feeds_display} where fid = '%d'", $delta);
-      $feed = db_fetch_object($query);
-      $content = load_feed($feed->feed_type, $feed->feed_url, $feed->num_items);
-      $block = array(
-        'subject'   =>  t($feed->feed_title),
-        'content'   =>  $content,
-        'link'      =>  $feed->feed_url,
-      );
-      return $block;
+    );
   }
+  return $blocks;
+}
+
+function feeds_display_block_view($delta = '') {
+
+  // Read our feeds from the db
+  $result = db_query("SELECT * from {feeds_display} where fid = :fid", array(':fid' => $delta));
+  foreach ($result as $feed) {
+    $content = load_feed($feed->feed_type, $feed->feed_url, $feed->num_items);
+    $block = array(
+        'subject'   =>  t($feed->feed_title),
+        'content'   =>  array('#theme'   => 'feeds_display_block', '#content' => $content, '#link' => $feed->feed_url ),
+        'link'      =>  $feed->feed_url,
+    );
+  }
+  return $block;
 }
 
 /**
@@ -309,27 +325,11 @@ function load_feed($feed_type, $feed_url, $num_items) {
  */
 function feeds_display_theme() {
   $theme['feeds_display_block'] = array(
-      'arguments' => array('block' => NULL),
+      'variables' => array('content' => NULL, 'link' => NULL),
       'template'  => 'feeds-display-block',
       'path'      => drupal_get_path('module', 'feeds_display') . '/templates',
   );
   return $theme;
-}
-
-
-/**
- * Implementation of hook_preprocess_block
- *
- * Make the block title a link.
- * Theme the content using our template
- *
- */
-function feeds_display_preprocess_block(&$vars) {
-  if ($vars['block']->module == 'feeds_display') {
-    // Uncomment this to make the block title links to the rss feed
-    // $vars['block']->subject = l($vars['block']->subject, $vars['block']->link, array('attributes' => array('class' => 'rss-link'), 'html'=>'true'));
-    $vars['block']->content = theme('feeds_display_block', $vars['block']);
-  }
 }
 
 
