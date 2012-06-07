@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * feeds_display.module
+ * live_feeds.module
  *
  * Created:    4/27/2011
  * Author(s):  Paul Lieberman - Central Web Services - Oregon State University
@@ -11,10 +11,6 @@
  * Modified:
  *
  * @todo:
- *	 Edit exisiting feed - hook_update - done
- *   Delete existing feed - hook_delete -done
- *   Make sure parsers are honoring number of items to display - done (I think)
- *
  *    Add hook_load and hook_view
  *
  */
@@ -23,15 +19,15 @@
 /**
  * Implements hook_init()
 */
-function feeds_display_init() {
+function live_feeds_init() {
 
   // Add CSS and Javascript for top-level module
-  drupal_add_css( drupal_get_path('module', 'feeds_display') . '/feeds_display.css');
-  drupal_add_js( drupal_get_path('module', 'feeds_display') . '/feeds_display.js');
+  drupal_add_css( drupal_get_path('module', 'live_feeds') . '/live_feeds.css');
+  drupal_add_js( drupal_get_path('module', 'live_feeds') . '/live_feeds.js');
 
   // Get the parsers and add them to the Javascript settings array
-  $parsers = feeds_display_get_available_parsers();
-  drupal_add_js(array('feeds_display' => $parsers), 'setting');
+  $parsers = live_feeds_get_available_parsers();
+  drupal_add_js(array('live_feeds' => $parsers), 'setting');
 
   // Add CSS for each parser
   foreach ($parsers as $module => $values) {
@@ -43,12 +39,12 @@ function feeds_display_init() {
 /**
  * Implements hook_node_info()
  */
-function feeds_display_node_info() {
+function live_feeds_node_info() {
   return array(
     'feed'        => array(
       'name'        => t('Feed'),
-      'module'      => 'feeds_display',
-      'base'        => 'feeds_display',
+      'module'      => 'live_feeds',
+      'base'        => 'live_feeds',
       'description' => t("A Feed is a summary of items or events from another source."),
       'help'        => 'Create a feed.',
       'title_label' => 'Feed',
@@ -60,7 +56,7 @@ function feeds_display_node_info() {
 /**
  * Impelements hook_help()
  */
-function feeds_display_help($path, $arg){
+function live_feeds_help($path, $arg){
   switch($path) {
     case 'node/add#feed':
       return t('A Feed. Use this page to add a feed.');
@@ -73,14 +69,14 @@ function feeds_display_help($path, $arg){
 /**
  * Implements hook_perm()
  */
-function feeds_display_permission(){
+function live_feeds_permission(){
   return array('create feed' => array(
-                  'title' => t('Create a new feed.'),
-                ), 
-               'edit feed'   => array(
-                  'title' => t('Edit an existing feed'),
-                )
-               );
+        'title' => t('Create a new feed.'),
+        ), 
+      'edit feed'   => array(
+        'title' => t('Edit an existing feed'),
+        )
+      );
 }
 
 
@@ -89,15 +85,15 @@ function feeds_display_permission(){
  *
  * Add a link to the Site Configuration menu
  */
-function feeds_display_menu() {
+function live_feeds_menu() {
 
   $items = array();
 
-  $items['admin/config/content/feeds_display'] = array(
-    'title'            => 'Feeds Display',
-    'description'      => 'Manage settings for Feeds Display',
+  $items['admin/config/content/live_feeds'] = array(
+    'title'            => 'Live Feeds',
+    'description'      => 'Manage settings for Live Feeds',
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('feeds_display_admin'),
+    'page arguments'   => array('live_feeds_admin'),
     'access arguments' => array('access administration pages'),
     'type'             => MENU_NORMAL_ITEM,
   );
@@ -108,11 +104,11 @@ function feeds_display_menu() {
  * Admin settings page
  *
  */
-function feeds_display_admin() {
+function live_feeds_admin() {
 
-  $form['feeds_display_admin'] = array(
+  $form['live_feeds_admin'] = array(
     '#type'   => 'markup',
-    '#title'  => t('Feeds Display settings'),
+    '#title'  => t('Live Feeds settings'),
     '#markup' => t('<p>There are no configuration options available at this time.</p>'),
   );
   return system_settings_form($form);
@@ -122,10 +118,10 @@ function feeds_display_admin() {
  * Implementation of hook_form()
  *
  */
-function feeds_display_form(&$node, &$form_state) {
+function live_feeds_form(&$node, &$form_state) {
 
   // Get the list of available parser plugins
-  $parsers = feeds_display_get_available_parsers();
+  $parsers = live_feeds_get_available_parsers();
   if (!$parsers) {
     drupal_set_message(t('No available parsers'));
   }
@@ -137,7 +133,7 @@ function feeds_display_form(&$node, &$form_state) {
   $from = array();
 
   // The feed type - based on available parsers
-  $form['feeds_display_form']['feed_type'] = array(
+  $form['live_feeds_form']['feed_type'] = array(
     '#type'          => 'select',
     '#title'         => t('The type of feed'),
     '#description'   => t('Select which type of feed you want to configure.'),
@@ -146,7 +142,7 @@ function feeds_display_form(&$node, &$form_state) {
   );
 
   // The block title
-  $form['feeds_display_form']['title'] = array(
+  $form['live_feeds_form']['title'] = array(
     '#type'          => 'textfield',
     '#title'         => t('Block Title'),
     '#description'   => t('This is name you will see in the Blocks list'),
@@ -155,7 +151,7 @@ function feeds_display_form(&$node, &$form_state) {
   );
 
   // The feed URL
-  $form['feeds_display_form']['feed_url'] = array(
+  $form['live_feeds_form']['feed_url'] = array(
     '#type'          => 'textfield',
     '#title'         => t('URL of your feed'),
     '#description'   => t('This is the URL of your feed. It will normally be an .rss or .xml file'),
@@ -164,7 +160,7 @@ function feeds_display_form(&$node, &$form_state) {
   );
 
   // Number of items to display
-  $form['feeds_display_form']['num_items'] = array(
+  $form['live_feeds_form']['num_items'] = array(
     '#type'   => 'textfield',
     '#title'  => t('Number of items to display'),
     '#default_value' => 5, //$feed->num_items ? $feed->num_items : '5',
@@ -172,7 +168,7 @@ function feeds_display_form(&$node, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['feeds_display_form']['#submit'] = array('feeds_display_submit_handler');
+  $form['live_feeds_form']['#submit'] = array('live_feeds_submit_handler');
 
   return $form;
 }
@@ -182,12 +178,12 @@ function feeds_display_form(&$node, &$form_state) {
  * Implementation of hook_validate.
  *
  */
-function feeds_display_validate($node) {
+function live_feeds_validate($node) {
   if ( $node->feed_type == 'select') {
     form_set_error('', t('Please select a feed type'));
   }
   elseif ( ! preg_match("/^http/", $node->feed_url )) {
-    form_set_error('feeds_display_form][feed_url', t('Please provide a valid feed URL'));
+    form_set_error('live_feeds_form][feed_url', t('Please provide a valid feed URL'));
   }
 }
 
@@ -196,13 +192,13 @@ function feeds_display_validate($node) {
 * Implementation of hook_form_alter().
 *
 */
-function feeds_display_form_alter(&$form, &$form_state, $form_id) {
+function live_feeds_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
  * Implements hook_insert()
  */
-function feeds_display_insert($node) {
+function live_feeds_insert($node) {
 
   // Insert a record into our table
   $feed = array(
@@ -214,14 +210,14 @@ function feeds_display_insert($node) {
     'num_items'  => $node->num_items,
   );
 
-  drupal_write_record('feeds_display', $feed);
+  drupal_write_record('live_feeds', $feed);
   drupal_set_message(t('Once your feed is created you can  go to the Blocks page and add the feed to a region in your theme.'));
 }
 
 /**
  * Implements hook_update()
  */
-function feeds_display_update($node) {
+function live_feeds_update($node) {
 
 	// Update a record in our table
   $feed = array(
@@ -231,27 +227,27 @@ function feeds_display_update($node) {
     'feed_type'  => $node->feed_type,
     'num_items'  => $node->num_items,
   );
-  drupal_write_record('feeds_display', $feed, 'nid');
+  drupal_write_record('live_feeds', $feed, 'nid');
 }
 
 
 /**
  * Implements hook_delete()
  */
-function feeds_display_delete($node) {
-  db_query('DELETE FROM {feeds_display} WHERE nid = %d', $node->nid);
+function live_feeds_delete($node) {
+  db_query('DELETE FROM {live_feeds} WHERE nid = %d', $node->nid);
 }
 
 /**
  * Implements hook_load()
  */
-function feeds_display_load($nodes) {
+function live_feeds_load($nodes) {
 
   $nids = array_keys($nodes);
   $nid  = $nids[0];
   $node = $nodes[$nid];
 
-  $result = db_query("SELECT feed_type, feed_url, num_items FROM {feeds_display} WHERE nid = :nid", array(':nid' => $nid));
+  $result = db_query("SELECT feed_type, feed_url, num_items FROM {live_feeds} WHERE nid = :nid", array(':nid' => $nid));
   foreach ($result as $feed ) {
     $node->feed_url  = $feed->feed_url;
     $node->feed_type = $feed->feed_type;
@@ -266,13 +262,13 @@ function feeds_display_load($nodes) {
  * When Drupal is instaniated this hook will read the database and
  * create the blocks for each of our feeds.
  */
-function feeds_display_block_info() {
+function live_feeds_block_info() {
 
   $blocks = array();
 
   // Read our feeds from the db
   // and create the block for each one
-  $result = db_query("SELECT * FROM {feeds_display}");
+  $result = db_query("SELECT * FROM {live_feeds}");
   foreach ($result as $feed ) {
     $blocks[$feed->fid] = array(
           'info'        => t($feed->feed_title),
@@ -284,15 +280,15 @@ function feeds_display_block_info() {
   return $blocks;
 }
 
-function feeds_display_block_view($delta = '') {
+function live_feeds_block_view($delta = '') {
 
   // Read our feeds from the db
-  $result = db_query("SELECT * from {feeds_display} where fid = :fid", array(':fid' => $delta));
+  $result = db_query("SELECT * from {live_feeds} where fid = :fid", array(':fid' => $delta));
   foreach ($result as $feed) {
     $content = load_feed($feed->feed_type, $feed->feed_url, $feed->num_items);
     $block = array(
         'subject'   =>  t($feed->feed_title),
-        'content'   =>  array('#theme'   => 'feeds_display_block', '#content' => $content, '#link' => $feed->feed_url ),
+        'content'   =>  array('#theme'   => 'live_feeds_block', '#content' => $content, '#link' => $feed->feed_url ),
         'link'      =>  $feed->feed_url,
     );
   }
@@ -312,9 +308,9 @@ function feeds_display_block_view($delta = '') {
  */
 function load_feed($feed_type, $feed_url, $num_items) {
 
-  $parsers = feeds_display_get_available_parsers();
+  $parsers = live_feeds_get_available_parsers();
   if ($parsers[$feed_type]) {
-    $func = $feed_type . '_feeds_display_parser';
+    $func = $feed_type . '_live_feeds_parser';
     return $func($feed_url, $num_items);
   }
 }
@@ -325,11 +321,11 @@ function load_feed($feed_type, $feed_url, $num_items) {
  * Register our template
  *
  */
-function feeds_display_theme() {
-  $theme['feeds_display_block'] = array(
+function live_feeds_theme() {
+  $theme['live_feeds_block'] = array(
       'variables' => array('content' => NULL, 'link' => NULL),
-      'template'  => 'feeds-display-block',
-      'path'      => drupal_get_path('module', 'feeds_display') . '/templates',
+      'template'  => 'live-feeds-block',
+      'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
   );
   return $theme;
 }
@@ -342,12 +338,12 @@ function feeds_display_theme() {
  *   An array of the enabled feed parser modules. The module name is the key
  *   and the value is a sub-array with the module's 'name' and 'description'.
  */
-function feeds_display_get_available_parsers() {
+function live_feeds_get_available_parsers() {
   static $parsers;
 
   if (!isset($parsers)) {
     $parsers = array();
-    foreach (module_implements('feeds_display_parser', TRUE) as $module) {
+    foreach (module_implements('live_feeds_parser', TRUE) as $module) {
       $info = drupal_parse_info_file(drupal_get_path('module', $module) .'/'. $module .'.info');
       $func = $module . '_config';
       $config = $func();
@@ -368,7 +364,7 @@ function feeds_display_get_available_parsers() {
  * Function to truncate a string to given number of words.
  * Can be used by parser modules
  */ 
-function feeds_display_truncate_words($string, $words){
+function live_feeds_truncate_words($string, $words){
   $string = explode(' ', $string);
   if (count($string) > $words) {
     return implode(' ', array_slice($string, 0, $words));

@@ -1,6 +1,6 @@
 <?php
 /**
- * @file osu_news.module
+ * @file google_feedburner.module
  *  Provides a custom parser for the Feeds Display module
  *  to parse RSS from the OSU News site
  */
@@ -10,11 +10,11 @@
   * @returns
   *   A configuration array for this parser
   */
- function osu_news_config() {
+ function google_feedburner_config() {
    $feed_config = array(
-    'feed_type'  => 'osu_news',
-    'feed_title' => 'OSU News',
-    'feed_url'   => 'http://oregonstate.edu/ua/ncs/releases/feed/',
+    'feed_type'  => 'google_feedburner',
+    'feed_title' => 'Google FeedBurner',
+    'feed_url'   => 'Enter the URL of your feed',
   );
   return $feed_config;
 }
@@ -31,7 +31,7 @@
  * @return
  *  A string with the formated HTML to display
  */
-function osu_news_feeds_display_parser($feed_url, $num_items) {
+function google_feedburner_live_feeds_parser($feed_url, $num_items) {
 
   $items = 0;
   $content = '';
@@ -84,7 +84,7 @@ function osu_news_feeds_display_parser($feed_url, $num_items) {
 			$content .= '<div class="news-body">' . $teaser . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
 		}
 		else {
-			$content .= '<div class="news-body">' . osu_news_truncate_words(trim($body), 20) . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
+			$content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
 		}
     $content .= '</div>';
 
@@ -92,51 +92,3 @@ function osu_news_feeds_display_parser($feed_url, $num_items) {
   return $content;
 }
 
-function osu_news_truncate_words($string, $words){
-  $string = explode(' ', $string);
-  if (count($string) > $words) {
-    return implode(' ', array_slice($string, 0, $words));
-  }
-  return implode(' ', $string);
-}
-
-
-/* Old function
-function osu_news_feeds_display_parser($feed_url, $num_items) {
- $xml = simplexml_load_file("$feed_url");
-
-  $content  = '<div id="feeds-display">';
-  $content .= '<a class="rss-icon" href="' . $feed_url . '">';
-  $content .= '<img src="http://oregonstate.edu/osuhomepage/images/rss_icon.png" width="16" height="16" /></a>';
-
-
-  foreach ($xml->channel->item as $story) {
-    if (++$items > $num_items) break;
-    preg_match('/<span class="date-display-single">(.*?)<\/span>/', $story->description, $date);
-    preg_match('/<img  class="imagefield imagefield-field_thumbnail"(.*?)>/', $story->description, $thumbnail);
-    preg_match('/<div class="field field-type-text field-field-body">(.*?)<\/div>(\s*?)<\/div>/s', $story->description, $news_body);
-    $date = strtotime(strip_tags($date[0]));
-    $thumbnail = $thumbnail[0];
-    $news_body = preg_replace(array('/<div class="field-label">(.*?)<\/div>/', '/<div(.*?)>/', '/<\/div>/'), '', $news_body[0]);
-    $news_body = preg_split('/\s+/', $news_body, (20 + 1));
-    array_pop($news_body);
-    $news_body = implode(' ', $news_body);
-
-    // Clean up broken HTML
-    $tidy = new tidy();
-    $news_body = $tidy->repairString($news_body, array('show-body-only' => 1)      );
-
-    $content .=  '<div class="news-item">';
-    $content .= $thumbnail;
-    $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3> - ';
-    $content .= '<div class="date">'  . date('M j, Y', $date) . '</div>';
-    $content .= '<div class="news-body">' . $news_body . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
-    $content .= '</div>';
-
-
-  }
-  $content .= '</div>';
-  return $content;
-}
-
-*/

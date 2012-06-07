@@ -2,20 +2,20 @@
 /**
  * Install the database for Feeds Display 
  */
-function feeds_display_install() {
-  drupal_install_schema('feeds_display');
+function live_feeds_install() {
+  drupal_install_schema('live_feeds');
 }
 
-function feeds_display_uninstall() {
-  drupal_uninstall_schema('feeds_display');
+function live_feeds_uninstall() {
+  drupal_uninstall_schema('live_feeds');
   
   /* Delete any variables too
-    variable_del('feeds_display_XXX'); 
+    variable_del('live_feeds_XXX'); 
   */ 
 }
 
-function feeds_display_schema() {
-  $schema['feeds_display'] = array(
+function live_feeds_schema() {
+  $schema['live_feeds'] = array(
     'fields' => array(
       'fid'   => array(
         'type'           => 'int', 

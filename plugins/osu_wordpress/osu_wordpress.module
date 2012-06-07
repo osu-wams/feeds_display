@@ -1,7 +1,7 @@
 <?php
 /**
  * @file osu_wordpress.module
- *  Provides a custom parser for the Feeds Display module
+ *  Provides a custom parser for the Live Feeds module
  *  to parse RSS from the OSU News site
  */
 
@@ -31,8 +31,10 @@
  * @return
  *  A string with the formated HTML to display
  */
-function osu_wordpress_feeds_display_parser($feed_url, $num_items) {
-  $xml = simplexml_load_file("$feed_url");
+function osu_wordpress_live_feeds_parser($feed_url, $num_items) {
+  $xml = simplexml_load_file($feed_url);
+  $items = 0;
+  $content = '';
 
   foreach ($xml->channel->item as $story) {
     if (++$items > $num_items) break;

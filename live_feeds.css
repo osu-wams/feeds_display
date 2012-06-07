@@ -1,14 +1,14 @@
-#feeds-display {
+#live-feeds {
   clear: both;
 }
 
-#feeds-display .rss-icon {
+#live-feeds .rss-icon {
   float: right;
   margin:  -40px 0 0 0;
   padding: .2em;
 }
 
-#feeds-display .rss-icon img {
+#live-feeds .rss-icon img {
   margin: 0;
 }
 

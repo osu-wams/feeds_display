@@ -1,7 +1,7 @@
 ; $Id
 name = OSU Events 
-description = A plugin for Feeds Display to parse the RSS from the OSU Events Calendar
-dependencies[] = feeds_display
+description = A plugin for Live Feeds to parse the RSS from the OSU Events Calendar
+dependencies[] = live_feeds
 package = OSU
 core = 7.x
 version = 7.x-0.3

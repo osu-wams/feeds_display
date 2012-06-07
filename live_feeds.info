@@ -1,8 +1,8 @@
 ; $Id
-name =  Feeds Display
+name =  Live Feeds
 description = A module to create blocks for custom feeds
 package = Other
 core = 7.x
 version = 7.x-1.0.0
-files[] = feeds_display.module
-files[] = feeds_display.install
+files[] = live_feeds.module
+files[] = live_feeds.install

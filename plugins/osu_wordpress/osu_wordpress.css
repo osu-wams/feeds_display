@@ -3,7 +3,7 @@
  *  Provide style for the OSU Events plugin for the Feeds Display module
  */
  
-#feeds-display .news-item {
+#live-feeds .news-item {
   border-bottom: 1px dotted #888888;
   clear: both;
   margin-bottom: 1.5em;
@@ -11,7 +11,7 @@
   padding-bottom: 1em;
 }
 
-#feeds-display .news-item  h3.title {
+#live-feeds .news-item  h3.title {
   color: #000000;
   display: inline;
   font-size: 0.93em;
@@ -19,14 +19,14 @@
   padding: 0;
 }
 
-#feeds-display .news-item img {
+#live-feeds .news-item img {
     clear: left;
     float: left;
     margin-right: 10px;
 }
 
 
-#feeds-display .news-item .date
+#live-feeds .news-item .date
 {
 	color: #565656;
 	display: inline;
@@ -36,7 +36,7 @@
 	white-space: nowrap;
 }
 
-#feeds-display .news-item .news-body {
+#live-feeds .news-item .news-body {
   margin-top: .2em;
   font-size: 0.93em;
 }

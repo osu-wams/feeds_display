@@ -1,7 +1,7 @@
 <?php
 /**
  * @file osu_events.php
- *  Provides a custom parser for the Feeds Display module
+ *  Provides a custom parser for the Live Feeds module
  *  to parse RSS from the OSU Events Calendar
  *  
  */
@@ -24,12 +24,12 @@
  * Implementation of hook_form_alter
  *
  */ 
-function not_osu_events_form_not_alter(&$form, &$form_state, $form_id) {
+function osu_events_form_not_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'feed_node_form') {
 
     drupal_add_js( drupal_get_path('module', 'osu_events') . '/osu_events.js');
 
-    $form['feeds_display_form']['date_style'] = array(
+    $form['live_feeds_form']['date_style'] = array(
       '#type'          => 'select',
       '#title'         => t('The style of the date in event items'),
       '#description'   => t('Select the classic OSU Standard style, or the new Calendar style.'),
@@ -66,7 +66,7 @@ function osu_events_nodeapi(&$node, $op) {
  * @return
  *  A string with the formated HTML to display
  */
-function osu_events_feeds_display_parser($feed_url, $num_items) {
+function osu_events_live_feeds_parser($feed_url, $num_items) {
   $xml = simplexml_load_file("$feed_url");
   $html = new DOMDocument; // Need this to parse the description
 
@@ -107,7 +107,7 @@ function osu_events_feeds_display_parser($feed_url, $num_items) {
     $year  = date('Y', $date);
 
     // Trucate the body and fix all unclosed tags
-    $body = feeds_display_truncate_words(trim($desc), 30);
+    $body = live_feeds_truncate_words(trim($desc), 30);
     $tidy = new tidy();
     $body = $tidy->repairString($body, array('show-body-only' => 1));
 
