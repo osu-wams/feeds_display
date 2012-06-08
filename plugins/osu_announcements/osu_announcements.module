@@ -14,7 +14,7 @@
    $feed_config = array(
     'feed_type'  => 'osu_announcements',
     'feed_title' => 'OSU Announcements',
-    'feed_url'   => 'http:/oregonstate.edu/cws/announcement/rss.xml',
+    'feed_url'   => 'http://oregonstate.edu/cws/announcement/rss.xml',
   );
   return $feed_config;
 }
@@ -41,12 +41,15 @@ function osu_announcements_live_feeds_parser($feed_url, $num_items) {
     if (++$items > $num_items) break;
 
     $date = date('M j, Y', strtotime($item->pubDate));
+    $body = live_feeds_truncate_words($item->description, 25);
+
+    $tidy = new tidy();
+    $body = $tidy->repairString($body, array('show-body-only' => 1));
 
     $content .=  '<div class="news-item">';
     $content .= '<h3 class="title"><a href="' . $item->link . '">' . $item->title . '</a></h3> - ';
     $content .= '<div class="date">'  . $date . '</div>';
-    $description = live_feeds_truncate_words($item->description, 25);
-    $content .= '<div class="news-body">' . $description . '&hellip; <a href="' . $item->link . '">&nbsp;Read full story.</a></div>';
+    $content .= '<div class="news-body">' . $body . '&hellip; <a href="' . $item->link . '">&nbsp;Read full story.</a></div>';
     $content .= '</div>';
   }
   return $content;

@@ -3,7 +3,7 @@
  * @file osu_events.php
  *  Provides a custom parser for the Live Feeds module
  *  to parse RSS from the OSU Events Calendar
- *  
+ *
  */
 
 
@@ -20,10 +20,10 @@
   return $feed_config;
 }
 
-/** 
+/**
  * Implementation of hook_form_alter
  *
- */ 
+ */
 function osu_events_form_not_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'feed_node_form') {
 
@@ -43,7 +43,7 @@ function osu_events_form_not_alter(&$form, &$form_state, $form_id) {
  * Implementation of hook_nodeapi
  *
  * We have to save the extra fields for this module.
- */ 
+ */
 function osu_events_nodeapi(&$node, $op) {
   if ($node->type == 'feed' && $node->feed_type == 'osu_events' ) {
     if ($op == 'insert' || $op == 'update') {
@@ -112,7 +112,7 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     $body = $tidy->repairString($body, array('show-body-only' => 1));
 
     // Build output string
-    $content .= '<div class="calendar-item">';  
+    $content .= '<div class="calendar-item">';
     $content .= '<div class="date ' . $date_style . '">';
     if ($date_style == 'classic') {
       $content .= '<span class="day">';
