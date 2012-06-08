@@ -72,7 +72,7 @@ function live_feeds_help($path, $arg){
 function live_feeds_permission(){
   return array('create feed' => array(
         'title' => t('Create a new feed.'),
-        ), 
+        ),
       'edit feed'   => array(
         'title' => t('Edit an existing feed'),
         )
@@ -187,14 +187,6 @@ function live_feeds_validate($node) {
   }
 }
 
-
-/**
-* Implementation of hook_form_alter().
-*
-*/
-function live_feeds_form_alter(&$form, &$form_state, $form_id) {
-}
-
 /**
  * Implements hook_insert()
  */
@@ -203,7 +195,6 @@ function live_feeds_insert($node) {
   // Insert a record into our table
   $feed = array(
     'nid'        => $node->nid,
-    'bid'        => 0,
     'feed_title' => $node->title,
     'feed_url'   => $node->feed_url,
     'feed_type'  => $node->feed_type,
