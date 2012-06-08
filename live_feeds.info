@@ -6,3 +6,5 @@ core = 7.x
 version = 7.x-1.0.0
 files[] = live_feeds.module
 files[] = live_feeds.install
+scripts[] = live_feeds.js
+stylesheets[all][] = live_feeds.css
