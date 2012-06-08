@@ -34,6 +34,8 @@
 function osu_announcements_live_feeds_parser($feed_url, $num_items) {
 
   $xml = simplexml_load_file("$feed_url");
+  $items = 0;
+  $content = '';
 
   foreach ($xml->channel->item as $item) {
     if (++$items > $num_items) break;
@@ -41,10 +43,10 @@ function osu_announcements_live_feeds_parser($feed_url, $num_items) {
     $date = date('M j, Y', strtotime($item->pubDate));
 
     $content .=  '<div class="news-item">';
-    $content .= $thumbnail;
     $content .= '<h3 class="title"><a href="' . $item->link . '">' . $item->title . '</a></h3> - ';
     $content .= '<div class="date">'  . $date . '</div>';
-    $content .= '<div class="news-body">' . $item->description . '&hellip; <a href="' . $item->link . '">&nbsp;Read full story.</a></div>';
+    $description = live_feeds_truncate_words($item->description, 25);
+    $content .= '<div class="news-body">' . $description . '&hellip; <a href="' . $item->link . '">&nbsp;Read full story.</a></div>';
     $content .= '</div>';
   }
   return $content;
