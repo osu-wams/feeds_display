@@ -4,17 +4,16 @@
  */
 
 
-.block-live-feeds h2 {
-  margin: 0 1em;
-  border-bottom: 1px solid #666;
-}
-
 #live-feeds .calendar-item {
-  border-bottom: 1px dotted #999;
+  border-bottom: 1px dotted #ccc;
   clear: both;
   margin-bottom: 1.4em;
   overflow: hidden;
-  padding-bottom: 0.5em;
+  padding-bottom: 0.9em;
+}
+
+#live-feeds .calendar-item p.title {
+  display: block;
 }
 
 /* The classic date style */
@@ -83,18 +82,6 @@
   margin-left: 80px;
 }
 
-#live-feeds .calendar-item .title a {
-  text-decoration: none;
+#live-feeds .calendar-item .description p.title {
+  margin-bottom: 5px;
 }
-
-#live-feeds .rss-icon {
-  background: url(rss-icon-new.png) top right no-repeat;
-  min-height: 16px;
-  min-width: 16px;
-  margin: -36px 4px 0 0;
-}
-
-#live-feeds .rss-icon img {
-  display: none;
-}
-
