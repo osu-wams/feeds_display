@@ -39,7 +39,7 @@
   background: url(rss-icon-new.png) top right no-repeat;
   min-height: 16px;
   min-width: 16px;
-  margin: -44px 8px 0 0;
+  margin: -49px 8px 0 0;
 }
 
 #live-feeds .news-item,
@@ -67,9 +67,3 @@
   line-height: 18px;
   font-size: 14px;
 }
-
-/*
-#live-feeds .rss-icon img {
-  display: none;
-}
-*/
