@@ -31,7 +31,6 @@
 ?>
 
 <div id='live-feeds'>
-  <a class='rss-icon' href='<?php print $link ?>'>
-  <img src='http://oregonstate.edu/osuhomepage/images/rss_icon.png' width='16' height='16' /></a>
+  <a class='rss-icon' href='<?php print $link ?>'></a>
   <?php print $content; ?>
 </div>

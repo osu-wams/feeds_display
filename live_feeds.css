@@ -11,11 +11,15 @@
   background: -ms-linear-gradient(top,  rgba(86,86,86,1) 0%,rgba(37,37,37,1) 100%); /* IE10+ future proof */
   background: linear-gradient(top,  rgba(86,86,86,1) 0%,rgba(37,37,37,1) 100%); /* W3C */
   color: #fff;
-  text-transform: uppercase;
   border-radius: 3px;
-  font-size: 120%;
-  padding: 0 10px;
+  font-weight: normal !important;
   margin-bottom: 18px;
+  padding: 1px 25px 1px 10px;
+  font-size: 125%;
+}
+
+#sidebar-first .block-live-feeds h2 {
+  padding: 4px 10px;
 }
 
 .ie .block-live-feeds h2 {
@@ -27,19 +31,21 @@
   border-bottom: none;
 }
 
-#live-feeds .rss-icon {
-  float: right;
-}
-
 #live-feeds .rss-icon img {
   margin: 0;
 }
 
 #live-feeds .rss-icon {
-  background: url(rss-icon-new.png) top right no-repeat;
-  min-height: 16px;
-  min-width: 16px;
-  margin: -49px 8px 0 0;
+  float: right;
+  background: url('images/rss_icon.png') top right no-repeat #c34500;
+  height: 16px;
+  width: 16px;
+  margin: -45px 8px 0 0;
+  border-radius: 3px;
+}
+
+#sidebar-first #live-feeds .rss-icon {
+  margin-top: -42px;
 }
 
 #live-feeds .news-item,
