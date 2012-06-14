@@ -12,6 +12,10 @@
   padding-bottom: 0.9em;
 }
 
+#live-feeds > .calendar-item:last-of-type {
+  border-bottom: none;
+}
+
 #live-feeds .calendar-item p.title {
   display: block;
 }
