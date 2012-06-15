@@ -18,7 +18,8 @@
   font-size: 125%;
 }
 
-#sidebar-first .block-live-feeds h2 {
+#sidebar-first .block-live-feeds h2,
+#sidebar-second .block-live-feeds h2 {
   padding: 4px 10px;
 }
 
@@ -44,7 +45,8 @@
   border-radius: 3px;
 }
 
-#sidebar-first #live-feeds .rss-icon {
+#sidebar-first #live-feeds .rss-icon,
+#sidebar-second #live-feeds .rss-icon {
   margin-top: -42px;
 }
 
