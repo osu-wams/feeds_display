@@ -1,4 +1,4 @@
-#live-feeds {
+.live-feeds-block {
   clear: both;
 }
 
@@ -44,16 +44,16 @@
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f2f2f2', endColorstr='#f6f6f6',GradientType=0 ); /* IE6-8 */
 }
 
-#live-feeds > div:last-child,
-#live-feeds > div.calendar-item:last-child {
+.live-feeds-block > div:last-child,
+.live-feeds-block > div.calendar-item:last-child {
   border-bottom: none;
 }
 
-#live-feeds .rss-icon img {
+.live-feeds-block .rss-icon img {
   margin: 0;
 }
 
-#live-feeds .rss-icon {
+.live-feeds-block .rss-icon {
   float: right;
   background: url('images/rss_icon.png') top right no-repeat #c34500;
   height: 16px;
@@ -62,8 +62,8 @@
   border-radius: 3px;
 }
 
-#live-feeds .news-item,
-#live-feeds .calendar-item {
+.live-feeds-block .news-item,
+.live-feeds-block .calendar-item {
   border-bottom: 1px dotted #ccc;
   clear: both;
   margin-bottom: 1.5em;
@@ -71,8 +71,8 @@
   padding-bottom: 1.5em;
 }
 
-#live-feeds .news-item  h3.title,
-#live-feeds .calendar-item p.title {
+.live-feeds-block .news-item  h3.title,
+.live-feeds-block .calendar-item p.title {
   color: #000000;
   display: inline;
   margin: 0;
@@ -80,10 +80,17 @@
   text-transform: none;
 }
 
-#live-feeds .news-item  h3.title,
-#live-feeds .calendar-item .description,
-#live-feeds .calendar-item .description p.title,
-#live-feeds .news-item .news-body {
+.live-feeds-block .news-item  h3.title,
+.live-feeds-block .calendar-item .description,
+.live-feeds-block .calendar-item .description p.title,
+.live-feeds-block .news-item .news-body {
   line-height: 18px;
   font-size: 14px;
+}
+
+/* Move the contextual links gear menu over
+ * so that it is not under the rss icon
+ */
+.block-live-feeds .contextual-links-wrapper {
+  right: 25px;
 }
