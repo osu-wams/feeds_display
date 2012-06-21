@@ -10,8 +10,8 @@
  *
  * Modified:
  *
- * @todo:
- *    Add hook_load and hook_view
+ *  2012-06-21 - PL - Add ability to add the blocks to the region from the form.
+ *                    No longer necessary to got to the blocks admin page.
  *
  */
 
@@ -157,11 +157,19 @@ function live_feeds_form(&$node, &$form_state) {
 
   // Number of items to display
   $form['live_feeds_form']['num_items'] = array(
-    '#type'   => 'textfield',
-    '#title'  => t('Number of items to display'),
+    '#type'          => 'textfield',
+    '#title'         => t('Number of items to display'),
     '#default_value' => 5, //$feed->num_items ? $feed->num_items : '5',
-    '#description' => t('Please enter the number of items you want displayed'),
-    '#required' => TRUE,
+    '#description'   => t('Please enter the number of items you want displayed'),
+    '#required'      => TRUE,
+  );
+
+  // Checkbox to add blocks to region
+  $form['live_feeds_form']['enable_block'] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t('Add block to the appropriate front page region?'),
+    '#description'   => t('This will enable your feed and display it on the front page.'),
+    '#default_value' => true,
   );
 
   $form['live_feeds_form']['#submit'] = array('live_feeds_submit_handler');
@@ -198,7 +206,38 @@ function live_feeds_insert($node) {
   );
 
   drupal_write_record('live_feeds', $feed);
-  drupal_set_message(t('Once your feed is created you can  go to the Blocks page and add the feed to a region in your theme.'));
+
+  // Flush cache to get the feeds added to the block table
+  drupal_flush_all_caches();
+
+  // Check to see if we should enable the block
+  if ($node->enable_block) {
+    // Determine where to put the block
+    switch ($node->feed_type) {
+      case 'osu_news' :
+        $block = 'main_first';
+        break;
+      case 'osu_events' :
+        $block = 'main_second';
+        break;
+      default :
+        $block = 'main_third';
+    }
+    // Update the blocks to set the status and regions
+    db_update('block')
+      ->fields(array('region' => $block, 'status' => 1))
+      ->condition('theme', 'osu_standard')
+      ->condition('title', $node->title)
+      ->execute();
+
+    // Clear the message queue
+    drupal_get_messages('status');
+    drupal_set_message('Your feed is now enabled.');
+  }
+  else {
+    drupal_set_message('Your feed has been created. You can now go to the Blocks page and add the feed to a region in your theme.');
+  }
+  drupal_goto('<front>');
 }
 
 /**
