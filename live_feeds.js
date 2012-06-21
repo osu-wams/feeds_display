@@ -14,7 +14,6 @@
           else {
             var feed_title = Drupal.settings.live_feeds[feed_type].name;
             var feed_url   = Drupal.settings.live_feeds[feed_type].url;
-
             $('#edit-title').val(feed_title);
             $('#edit-feed-url').val(feed_url);
           }

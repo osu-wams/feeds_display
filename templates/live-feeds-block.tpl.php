@@ -30,7 +30,7 @@
  */
 ?>
 
-<div id='live-feeds'>
+<div class='live-feeds-block'>
   <a class='rss-icon' href='<?php print $link ?>'></a>
   <?php print $content; ?>
 </div>

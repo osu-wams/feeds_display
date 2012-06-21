@@ -5,7 +5,7 @@
 
 
 /*
-#feeds-display .calendar-item {
+.live-feeds-block .calendar-item {
   border-bottom: 1px dotted #999;
   clear: both;
   margin-bottom: 1.4em;
@@ -15,28 +15,28 @@
 */
 /* The classic date style */
 /*
-#feeds-display .calendar-item .date.classic {
+.live-feeds-block .calendar-item .date.classic {
   float: left;
   margin-right: 0.385em;
 }
 
-#feeds-display .calendar-item .date.classic span {
+.live-feeds-block .calendar-item .date.classic span {
   display: block;
   font-weight: bold;
   margin-top: -0.2em;
 }
-#feeds-display .calendar-item .date.classic .day {
+.live-feeds-block .calendar-item .date.classic .day {
   color: #949494;
   font-size: 2.77em;
 }
 
-#feeds-display .calendar-item .date.classic .month {
+.live-feeds-block .calendar-item .date.classic .month {
   color: #C34500;
   font-size: 1.5em;
   margin-top: -0.5em;
 }
 
-#feeds-display .calendar-item .date.classic .year {
+.live-feeds-block .calendar-item .date.classic .year {
   color: #393939;
   font-size: 1.2em;
   margin-top: -0.12em;
@@ -44,20 +44,20 @@
 */
 /* The new calendar date style */
 /*
-#feeds-display .calendar-item .date.calendar {
+.live-feeds-block .calendar-item .date.calendar {
   float: left;
   width: 66px;
   text-align: center;
 }
 
-#feeds-display .calendar-item .date.calendar .day {
+.live-feeds-block .calendar-item .date.calendar .day {
   color: #c34500;
   font-size: 2.5em;
   font-weight: bold;
   margin-top: -2px;
 }
 
-#feeds-display .calendar-item .date.calendar .month {
+.live-feeds-block .calendar-item .date.calendar .month {
   color: #fff;
   background-color: #444;
   font-size: 1.05em;
@@ -65,35 +65,35 @@
   text-transform: uppercase;
 }
 
-#feeds-display .calendar-item .date.calendar .day-year {
+.live-feeds-block .calendar-item .date.calendar .day-year {
   margin-top: 2px;
   border-radius: 0 0 3px 3px;
   background-color: #f2f2f2;
   border: 1px solid #ccc;
 }
 
-#feeds-display .calendar-item .date.calendar .year {
+.live-feeds-block .calendar-item .date.calendar .year {
   color: #393939;
   font-size: 1.1em;
   margin: -5px 0 3px;
 }
 
-#feeds-display .calendar-item .description {
+.live-feeds-block .calendar-item .description {
   margin-left: 80px;
 }
 
-#feeds-display .calendar-item .title a {
+.live-feeds-block .calendar-item .title a {
   text-decoration: none;
 }
 
-#feeds-display .rss-icon {
+.live-feeds-block .rss-icon {
   background: url(rss-icon-new.png) top right no-repeat;
   min-height: 16px;
   min-width: 16px;
   margin: -36px 4px 0 0;
 }
 
-#feeds-display .rss-icon img {
+.live-feeds-block .rss-icon img {
   display: none;
 }
 
