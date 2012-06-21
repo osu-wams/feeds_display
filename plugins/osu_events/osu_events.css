@@ -3,12 +3,6 @@
  *  Provide style for the OSU Events plugin for the Feeds Display module
  */
 
-
-.block-live-feeds h2 {
-  margin: 0 1em;
-  border-bottom: 1px solid #666;
-}
-
 .live-feeds-block .calendar-item {
   border-bottom: 1px dotted #999;
   clear: both;
@@ -87,14 +81,4 @@
   text-decoration: none;
 }
 
-.live-feeds-block .rss-icon {
-  background: url(rss-icon-new.png) top right no-repeat;
-  min-height: 16px;
-  min-width: 16px;
-  margin: -36px 4px 0 0;
-}
-
-.live-feeds-block .rss-icon img {
-  display: none;
-}
 
