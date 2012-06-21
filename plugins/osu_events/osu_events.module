@@ -15,7 +15,7 @@
    $feed_config = array(
     'feed_type'   => 'osu_events',
     'feed_title'  => 'OSU Events',
-    'feed_url'    => 'http://calendar.oregonstate.edu/osu/rss20.xml',
+    'feed_url'    => 'http://calendar.oregonstate.edu/today+60/list/webtrain/rss20.xml',
   );
   return $feed_config;
 }
@@ -103,8 +103,19 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     // Parse the date
     $date  = strtotime($start);
     $day   = date('d', $date);
+    $mon   = date('m', $date);
     $month = date('M', $date);
     $year  = date('Y', $date);
+
+    // Get today's date
+    $today_mon = date('m',time());
+    $today_day = date('d',time());
+
+    // Skip if earlier than today
+    if ( $mon < $today_mon || $day < $today_day) {
+      $items--;
+      continue;
+    }
 
     // Trucate the body and fix all unclosed tags
     $body = live_feeds_truncate_words(trim($desc), 30);

@@ -126,6 +126,12 @@ function live_feeds_form(&$node, &$form_state) {
     $options[$parser] = $info['name'];
   }
 
+  // Get the list of available theme regions
+  $default_theme = variable_get('theme_default', 'bartik');
+  $themes = list_themes();
+  $regions = $themes[$default_theme]->info['regions'];
+  array_unshift($regions, array('none' => 'None'));
+
   $from = array();
 
   // The feed type - based on available parsers
@@ -164,12 +170,13 @@ function live_feeds_form(&$node, &$form_state) {
     '#required'      => TRUE,
   );
 
-  // Checkbox to add blocks to region
+  // Add blocks to region
   $form['live_feeds_form']['enable_block'] = array(
-    '#type'          => 'checkbox',
-    '#title'         => t('Add block to the appropriate front page region?'),
+    '#type'          => 'select',
+    '#title'         => t('Add block to a theme region'),
     '#description'   => t('This will enable your feed and display it on the front page.'),
-    '#default_value' => true,
+    '#options'       => $regions,
+    '#default_value' => 'none',
   );
 
   $form['live_feeds_form']['#submit'] = array('live_feeds_submit_handler');
@@ -211,28 +218,18 @@ function live_feeds_insert($node) {
   drupal_flush_all_caches();
 
   // Check to see if we should enable the block
-  if ($node->enable_block) {
-    // Determine where to put the block
-    switch ($node->feed_type) {
-      case 'osu_news' :
-        $block = 'main_first';
-        break;
-      case 'osu_events' :
-        $block = 'main_second';
-        break;
-      default :
-        $block = 'main_third';
-    }
+  if ($node->enable_block != 'none') {
+    $region = $node->enable_block;
     // Update the blocks to set the status and regions
     db_update('block')
-      ->fields(array('region' => $block, 'status' => 1))
+      ->fields(array('region' => $region, 'status' => 1))
       ->condition('theme', 'osu_standard')
       ->condition('title', $node->title)
       ->execute();
 
     // Clear the message queue
     drupal_get_messages('status');
-    drupal_set_message('Your feed is now enabled.');
+    //drupal_set_message('Your feed is now enabled.');
   }
   else {
     drupal_set_message('Your feed has been created. You can now go to the Blocks page and add the feed to a region in your theme.');
