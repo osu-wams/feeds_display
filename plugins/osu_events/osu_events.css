@@ -4,20 +4,17 @@
  */
 
 
+.block-live-feeds h2 {
+  margin: 0 1em;
+  border-bottom: 1px solid #666;
+}
+
 .live-feeds-block .calendar-item {
-  border-bottom: 1px dotted #ccc;
+  border-bottom: 1px dotted #999;
   clear: both;
   margin-bottom: 1.4em;
   overflow: hidden;
-  padding-bottom: 0.9em;
-}
-
-.live-feeds-block > .calendar-item:last-of-type {
-  border-bottom: none;
-}
-
-.live-feeds-block .calendar-item p.title {
-  display: block;
+  padding-bottom: 0.5em;
 }
 
 /* The classic date style */
@@ -53,17 +50,6 @@
   float: left;
   width: 66px;
   text-align: center;
-  background: #fcfcfc;
-	background: linear-gradient(top, #fcfcfc 0%,#dad8d8 100%);
-	background: -moz-linear-gradient(top, #fcfcfc 0%, #dad8d8 100%);
-	background: -webkit-linear-gradient(top, #fcfcfc 0%,#dad8d8 100%);
-	border: 1px solid #d2d2d2;
-	border-radius: 10px;
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
-	box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
-	-moz-box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
-	-webkit-box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
 }
 
 .live-feeds-block .calendar-item .date.calendar .day {
@@ -79,10 +65,6 @@
   font-size: 1.05em;
   border-radius: 3px 3px 0 0;
   text-transform: uppercase;
-  background: linear-gradient(top, #C34500 0%, #7a0909 100%);
-	background: -moz-linear-gradient(top, #C34500 0%, #7a0909 100%);
-	background: -webkit-linear-gradient(top, #C34500 0%, #7a0909 100%);
-
 }
 
 .live-feeds-block .calendar-item .date.calendar .day-year {
@@ -93,7 +75,7 @@
 
 .live-feeds-block .calendar-item .date.calendar .year {
   color: #393939;
-  font-size: .9em;
+  font-size: 1.1em;
   margin-top: 2px;
 }
 
@@ -101,6 +83,18 @@
   margin-left: 80px;
 }
 
-.live-feeds-block .calendar-item .description p.title {
-  margin-bottom: 5px;
+.live-feeds-block .calendar-item .title a {
+  text-decoration: none;
 }
+
+.live-feeds-block .rss-icon {
+  background: url(rss-icon-new.png) top right no-repeat;
+  min-height: 16px;
+  min-width: 16px;
+  margin: -36px 4px 0 0;
+}
+
+.live-feeds-block .rss-icon img {
+  display: none;
+}
+
