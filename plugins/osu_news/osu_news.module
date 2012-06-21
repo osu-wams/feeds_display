@@ -1,0 +1,94 @@
+<?php
+/**
+ * @file osu_news.module
+ *  Provides a custom parser for the Live Feeds  module
+ *  to parse RSS from the OSU News site
+ */
+
+
+ /**
+  * @returns
+  *   A configuration array for this parser
+  */
+ function osu_news_config() {
+   $feed_config = array(
+    'feed_type'  => 'osu_news',
+    'feed_title' => 'OSU News',
+    'feed_url'   => 'http://oregonstate.edu/ua/ncs/releases/feed/',
+  );
+  return $feed_config;
+}
+
+
+ /**
+ * Parse the RSS and display the feed
+ *
+ * @param $feed_url
+ *  A string containing he URL of the feed
+ * @param $num_items
+ *  An integer containing the number of items to display
+ *
+ * @return
+ *  A string with the formated HTML to display
+ */
+function osu_news_live_feeds_parser($feed_url, $num_items) {
+
+  $items = 0;
+  $content = '';
+  $thumb = '';
+  $date_text = '';
+  $body = '';
+
+ 	$xml = simplexml_load_file("$feed_url");
+	$html = new DOMDocument; // Need this to parse the description
+
+  foreach ($xml->channel->item as $story) {
+    if (++$items > $num_items) break;
+
+		unset($teaser); // Don't reuse content from previous iteration
+
+		// Parse the description into HTML divs
+    // and look for specific classes
+    $html->loadHTML($story->description);
+    foreach ($html->getElementsByTagName('div') as $div) {
+    	$class = $div->getAttribute('class');
+
+      // Get the Date
+      if (strpos($class, 'field-field-date')) {
+        $date_text = $div->getElementsByTagName('span')->item(0)->nodeValue;
+      }
+
+   		// Get the thumbnail URL
+      elseif (strpos($class, 'field-field-thumbnail')) {
+        $img   = $div->getElementsByTagName('img')->item(0);
+        $thumb = $html->saveXML($img); // We want to preserve all of the html for the img tag
+      }
+
+    	// Get the teaser
+      elseif (strpos($class, 'field-field-teaser')) {
+				$teaser = utf8_decode( $div->getElementsByTagName('p')->item(0)->nodeValue );
+	    }
+
+			// Get the body
+			elseif (strpos($class, 'field-field-body')) {
+       	$body =  mb_convert_encoding($div->getElementsByTagName('div')->item(2)->nodeValue, "ISO_8859-1", "UTF-8");
+	    }
+		}
+    $content .=  '<div class="news-item">';
+    $content .= $thumb;
+    $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3> - ';
+    $content .= '<div class="date">'  . date('M j, Y', strtotime($date_text)) . '</div>';
+
+  	// Display teaser if there is one, else truncate body
+		if (isset($teaser)) {
+			$content .= '<div class="news-body">' . $teaser . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
+		}
+		else {
+			$content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
+		}
+    $content .= '</div>';
+
+  }
+  return $content;
+}
+

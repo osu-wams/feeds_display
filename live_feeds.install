@@ -1,55 +1,39 @@
 <?php
 /**
- * Install the database for Feeds Display 
+ * Install the database for Live Feeds
  */
-function live_feeds_install() {
-  drupal_install_schema('live_feeds');
-}
 
-function live_feeds_uninstall() {
-  drupal_uninstall_schema('live_feeds');
-  
-  /* Delete any variables too
-    variable_del('live_feeds_XXX'); 
-  */ 
-}
 
 function live_feeds_schema() {
   $schema['live_feeds'] = array(
     'fields' => array(
       'fid'   => array(
-        'type'           => 'int', 
+        'type'           => 'int',
         'auto_increment' => true,
-        'unsigned'       => true, 
-        'not null'       => true, 
+        'unsigned'       => true,
+        'not null'       => true,
       ),
       'nid'   => array(
-        'type'     => 'int',  
-        'unsigned' => true, 
-        'not null' => true, 
-        'default'  => 0
-      ),
-      'bid'   => array(
-        'type'     => 'int',  
-        'unsigned' => true, 
-        'not null' => true, 
+        'type'     => 'int',
+        'unsigned' => true,
+        'not null' => true,
         'default'  => 0
       ),
       'feed_title' => array(
-        'type'     => 'text', 
+        'type'     => 'text',
         'not null' => true
       ),
       'feed_url' => array(
-        'type'     => 'text', 
+        'type'     => 'text',
         'not null' => true
       ),
       'num_items'=> array(
-        'type'     => 'int',  
-        'not null' => true, 
+        'type'     => 'int',
+        'not null' => true,
         'default'  => 3
       ),
       'feed_type' => array(
-        'type'     => 'text', 
+        'type'     => 'text',
         'not null' => true
       ),
     ),
