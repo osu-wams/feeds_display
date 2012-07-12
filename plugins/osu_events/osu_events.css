@@ -39,6 +39,11 @@
   margin-top: -0.12em;
 }
 
+.live-feeds-block abbr[title] { /* for accessibile, dates */
+  border-bottom: none;
+  cursor: default;
+}
+
 /* The new calendar date style */
 .live-feeds-block .calendar-item .date.calendar {
   float: left;

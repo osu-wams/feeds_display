@@ -320,7 +320,7 @@ function live_feeds_block_view($delta = '') {
     $content = load_feed($feed->feed_type, $feed->feed_url, $feed->num_items);
     $block = array(
         'subject'   =>  t($feed->feed_title),
-        'content'   =>  array('#theme'   => 'live_feeds_block', '#content' => $content, '#link' => $feed->feed_url ),
+        'content'   =>  array('#theme'   => 'live_feeds_block', '#content' => $content, '#link' => $feed->feed_url, '#subject' => $feed->feed_title ),
         'link'      =>  $feed->feed_url,
     );
   }
@@ -355,7 +355,7 @@ function load_feed($feed_type, $feed_url, $num_items) {
  */
 function live_feeds_theme() {
   $theme['live_feeds_block'] = array(
-      'variables' => array('content' => NULL, 'link' => NULL),
+      'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
       'template'  => 'live-feeds-block',
       'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
   );
