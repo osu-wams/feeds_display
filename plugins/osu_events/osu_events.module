@@ -76,7 +76,7 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
   $date_style =  variable_get('osu_events_date_style', 'calendar');
 
   // Parse the feed_url to determine the calendar link
-  preg_match('/\/(\w+)\/rss20.xml/', $feed_url, $match);
+  preg_match('/\/(\w+-*\w*-*\w*)\/rss20.xml/', $feed_url, $match);
   $cal_link = 'http://calendar.oregonstate.edu/' . $match[1];
 
   foreach ($xml->channel->item as $event) {
