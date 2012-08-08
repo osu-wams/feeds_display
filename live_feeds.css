@@ -3,7 +3,7 @@
 }
 
 .block-live-feeds h2 {
-  background: #3f3f3f; /* Old browsers */
+  background: #3f3f3f;
   color: #fff;
   border-radius: 3px;
   font-weight: normal !important;
@@ -39,10 +39,6 @@
   border-bottom: none;
 }
 
-.live-feeds-block .rss-icon img {
-  margin: 0;
-}
-
 .live-feeds-block .rss-icon {
   float: right;
   background: url('images/rss_icon.png') top right no-repeat #c34500;
@@ -50,6 +46,7 @@
   width: 16px;
   margin: -40px 8px 0 0;
   border-radius: 3px;
+  text-indent: -9999em; /* for accessibility, title is read for screen readers */
 }
 
 .live-feeds-block .news-item,

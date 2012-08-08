@@ -218,7 +218,7 @@ function live_feeds_insert($node) {
   drupal_flush_all_caches();
 
   // Check to see if we should enable the block
-  if ($node->enable_block != 'none') {
+  if (isset($node->enable_block) && $node->enable_block != 'none') {
     $region = $node->enable_block;
     // Update the blocks to set the status and regions
     db_update('block')
@@ -227,14 +227,11 @@ function live_feeds_insert($node) {
       ->condition('title', $node->title)
       ->execute();
 
-    // Clear the message queue
-    drupal_get_messages('status');
-    //drupal_set_message('Your feed is now enabled.');
+    drupal_set_message('Your feed ' . $node->title . ' is now enabled.');
   }
   else {
     drupal_set_message('Your feed has been created. You can now go to the Blocks page and add the feed to a region in your theme.');
   }
-  drupal_goto('<front>');
 }
 
 /**
@@ -323,7 +320,7 @@ function live_feeds_block_view($delta = '') {
     $content = load_feed($feed->feed_type, $feed->feed_url, $feed->num_items);
     $block = array(
         'subject'   =>  t($feed->feed_title),
-        'content'   =>  array('#theme'   => 'live_feeds_block', '#content' => $content, '#link' => $feed->feed_url ),
+        'content'   =>  array('#theme'   => 'live_feeds_block', '#content' => $content, '#link' => $feed->feed_url, '#subject' => $feed->feed_title ),
         'link'      =>  $feed->feed_url,
     );
   }
@@ -358,7 +355,7 @@ function load_feed($feed_type, $feed_url, $num_items) {
  */
 function live_feeds_theme() {
   $theme['live_feeds_block'] = array(
-      'variables' => array('content' => NULL, 'link' => NULL),
+      'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
       'template'  => 'live-feeds-block',
       'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
   );

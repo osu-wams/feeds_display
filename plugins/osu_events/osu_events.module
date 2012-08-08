@@ -106,13 +106,14 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     $mon   = date('m', $date);
     $month = date('M', $date);
     $year  = date('Y', $date);
+    $spell_mon = date('F', $date);
 
     // Get today's date
     $today_mon = date('m',time());
     $today_day = date('d',time());
 
     // Skip if earlier than today
-    if ( $mon < $today_mon || $day < $today_day) {
+    if ( $mon < $today_mon || ($mon == $today_mon && $day < $today_day)) {
       $items--;
       continue;
     }
@@ -128,16 +129,16 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     if ($date_style == 'classic') {
       $content .= '<span class="day">';
       $content .= $day;
-      $content .= '</span><span class="month">';
+      $content .= '</span><span class="month"><abbr title="'.$spell_mon.'"> ';
       $content .= $month;
-      $content .= '</span><span class="year">';
+      $content .= '</abbr></span><span class="year">';
       $content .= $year;
       $content .= '</span></div>';
     }
     else {
-      $content .= '<div class="month">';
+      $content .= '<div class="month"><abbr title="'.$spell_mon.'">';
       $content .= $month;
-      $content .= '</div><div class="day-year"><div class="day">';
+      $content .= '</abbr></div><div class="day-year"><div class="day">';
       $content .= $day;
       $content .= '</div><div class="year">';
       $content .= $year;
