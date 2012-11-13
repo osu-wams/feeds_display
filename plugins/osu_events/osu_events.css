@@ -20,28 +20,32 @@
 .live-feeds-block .calendar-item .date.classic span {
   display: block;
   font-weight: bold;
-  margin-top: -0.2em;
+  margin-top: .2em;
 }
 .live-feeds-block .calendar-item .date.classic .day {
-  color: #949494;
-  font-size: 2.77em;
+  color: #c34500;
+  font-size: 34px;
 }
 
 .live-feeds-block .calendar-item .date.classic .month {
-  color: #C34500;
-  font-size: 1.5em;
-  margin-top: -0.5em;
+  color: #949494;
+  font-size: 20px;
+  text-transform: uppercase;
 }
 
 .live-feeds-block .calendar-item .date.classic .year {
   color: #393939;
-  font-size: 1.2em;
-  margin-top: -0.12em;
+  font-size: 16px;
+  margin-top: -4px;
 }
 
 .live-feeds-block abbr[title] { /* for accessibile, dates */
   border-bottom: none;
   cursor: default;
+}
+
+.live-feeds-block .calendar-item .classic + .description {
+  margin-left: 60px;
 }
 
 /* The new calendar date style */
