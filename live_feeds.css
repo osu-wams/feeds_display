@@ -3,14 +3,15 @@
 }
 
 .block-live-feeds h2 {
-  background: #3f3f3f;
+  background: #373737;
   color: #fff;
-  border-radius: 3px;
+  border-radius: 3px 3px 0 0;
   font-weight: normal !important;
   margin-bottom: 18px;
   padding: 0 25px 0 10px;
-  font-size: 110%;
+  font-size: 16px;
   line-height: 30px;
+  font-family: 'Gudea',Arial,Helvetica,Verdana,sans-serif;
 }
 
 #sidebar-first .block-live-feeds h2,
@@ -29,6 +30,31 @@
   background: linear-gradient(top, rgba(242,242,242,1) 0%,rgba(246,246,246,1) 100%); /* W3C */
 }
 
+.science .span9 .block-live-feeds .rss-icon {
+  margin-top: -49px;
+  border-radius: 0;
+  border: none;
+}
+
+.classic .span9 .block-live-feeds .rss-icon {
+  margin-top: -64px;
+}
+
+.classic .block-live-feeds .rss-icon {
+  margin-top: -58px; /* sidebars */
+}
+
+/* Boxy variants */
+.honors #sidebar-first .block-live-feeds h2, 
+.honors #sidebar-second .block-live-feeds h2 {
+  margin: 0 12px;
+}
+
+.honors #sidebar-first .block-live-feeds .rss-icon,
+.honors #sidebar-second .block-live-feeds .rss-icon {
+  margin: -40px 0 0;
+}
+
 .ie #sidebar-first .block-live-feeds h2,
 .ie #sidebar-second .block-live-feeds h2 {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f2f2f2', endColorstr='#f6f6f6',GradientType=0 ); /* IE6-8 */
@@ -41,13 +67,49 @@
 
 .live-feeds-block .rss-icon {
   float: right;
-  background: url('images/rss_icon.png') top right no-repeat #c34500;
-  height: 16px;
-  width: 16px;
-  margin: -40px 8px 0 0;
-  border-radius: 3px;
-  text-indent: -9999em; /* for accessibility, title is read for screen readers */
+  height: 30px;
+  width: 30px;
+  margin: -48px 0 0 0;
+  border-radius: 0 3px 0 0;
+  border-left: 1px solid #fff;
+  background: #c34500;
+  text-decoration: none;
 }
+
+/* For variant themes that have boxes around areas */
+.honors .live-feeds-block .rss-icon {
+  margin: -53px -12px 0 0;
+}
+
+.classic .live-feeds-block .rss-icon {
+  position: relative;
+  border: none;
+  height: 22px;
+  width: 22px;
+  border-radius: 3px;
+}
+
+.live-feeds-block .icon-rss {
+  color: #fff;
+  padding: 7px 0 0 7px;
+  font-size: 20px;
+}
+
+.classic .live-feeds-block .icon-rss {
+  padding: 3px 0 0 5px !important;
+  font-size: 18px;
+}
+
+#sidebar-first .live-feeds-block .icon-rss,
+#sidebar-second .live-feeds-block .icon-rss {
+  padding: 9px 0 0 8px;
+}
+/* add focus/hover/acitve effects?
+.live-feeds-block .rss-icon:hover,
+.live-feeds-block .rss-icon:focus,
+.live-feeds-block .rss-icon:focus {
+  background: #999;
+}*/
 
 .live-feeds-block .news-item,
 .live-feeds-block .calendar-item {
