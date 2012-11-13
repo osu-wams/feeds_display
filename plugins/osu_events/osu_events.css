@@ -4,7 +4,6 @@
  */
 
 .live-feeds-block .calendar-item {
-  border-bottom: 1px dotted #f00;
   clear: both;
   margin-bottom: 1.4em;
   overflow: hidden;
@@ -52,15 +51,15 @@
 }
 
 .live-feeds-block .calendar-item .date.calendar .day {
-  color: #c34500;
+  color: #373737;
   font-size: 2em;
   font-weight: bold;
-  margin-top: 4px;
+  padding-top: 4px;
 }
 
 .live-feeds-block .calendar-item .date.calendar .month {
   color: #fff;
-  background-color: #444;
+  background-color: #c34500;
   font-size: 1.05em;
   border-radius: 3px 3px 0 0;
   text-transform: uppercase;
@@ -69,11 +68,10 @@
 .live-feeds-block .calendar-item .date.calendar .day-year {
   border-radius: 0 0 3px 3px;
   background-color: #f2f2f2;
-  border: 1px solid #ccc;
 }
 
 .live-feeds-block .calendar-item .date.calendar .year {
-  color: #393939;
+  color: #373737;
   font-size: 1.1em;
   margin-top: 2px;
 }
