@@ -4,7 +4,7 @@
  */
 
 .live-feeds-block .calendar-item {
-  border-bottom: 1px dotted #999;
+  border-bottom: 1px dotted #f00;
   clear: both;
   margin-bottom: 1.4em;
   overflow: hidden;
