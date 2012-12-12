@@ -113,10 +113,12 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     $today_day = date('d',time());
 
     // Skip if earlier than today
+    /*
     if ( $mon < $today_mon || ($mon == $today_mon && $day < $today_day)) {
       $items--;
       continue;
     }
+    */
 
     // Trucate the body and fix all unclosed tags
     $body = live_feeds_truncate_words(trim($desc), 30);
