@@ -111,9 +111,14 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     // Get today's date
     $today_mon = date('m',time());
     $today_day = date('d',time());
+    $today_year = date('Y',time());
 
     // Skip if earlier than today
-    if ( $mon < $today_mon || ($mon == $today_mon && $day < $today_day)) {
+    if (
+      ($year < $today_year) ||
+      ($year == $today_year && $mon < $today_mon) ||
+      ($year == $today_year && $mon == $today_mon && $day < $today_day)
+    ) {
       $items--;
       continue;
     }
