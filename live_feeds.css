@@ -16,7 +16,11 @@
 
 #sidebar-first .block-live-feeds h2,
 #sidebar-second .block-live-feeds h2 {
-  padding: 2px 10px;
+  padding: 3px 10px;
+}
+
+.science #sidebar-first .block-live-feeds h2,
+.science #sidebar-second .block-live-feeds h2 {
   color: #333;
   border: 1px solid #c5c4c4;
   background: rgb(242,242,242); /* Old browsers */
@@ -28,6 +32,11 @@
   background: -o-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(246,246,246,1) 100%); /* Opera 11.10+ */
   background: -ms-linear-gradient(top, rgba(242,242,242,1) 0%,rgba(246,246,246,1) 100%); /* IE10+ */
   background: linear-gradient(top, rgba(242,242,242,1) 0%,rgba(246,246,246,1) 100%); /* W3C */
+}
+
+.classic #sidebar-first .block-live-feeds h2,
+.classic #sidebar-second .block-live-feeds h2 {
+  border: 1px solid #c5c4c4;
 }
 
 .science .span9 .block-live-feeds .rss-icon {
@@ -42,6 +51,11 @@
 
 .classic .block-live-feeds .rss-icon {
   margin-top: -58px; /* sidebars */
+}
+
+.science #sidebar-first .block-live-feeds .rss-icon,
+.science #sidebar-second .block-live-feeds .rss-icon {
+  margin-top: -49px;
 }
 
 /* Boxy variants */
@@ -100,6 +114,11 @@
   font-size: 18px;
 }
 
+.classic #sidebar-first .live-feeds-block .icon-rss,
+.classic #sidebar-secoond .live-feeds-block .icon-rss {
+  padding-top: 5px !important;
+}
+
 #sidebar-first .live-feeds-block .icon-rss,
 #sidebar-second .live-feeds-block .icon-rss {
   padding: 9px 0 0 8px;
@@ -142,4 +161,28 @@
  */
 .block-live-feeds .contextual-links-wrapper {
   right: 25px;
+}
+
+/* MEDIA QUERIES FOR PHONE SIZE */
+@media (max-width: 480px) {
+  .live-feeds-block .rss-icon {
+    margin: -54px -6px 0 0;
+  }
+ 
+  .classic .span9 .live-feeds-block .rss-icon {
+    margin: -54px 0 0;
+  }
+
+  .classic .block-live-feeds .rss-icon {
+    margin: -51px 0 0;
+  }
+
+  .science #sidebar-first .block-live-feeds .rss-icon, .science #sidebar-second .block-live-feeds .rss-icon {
+    margin-top: -55px;
+  }
+
+  .science .span9 .block-live-feeds .rss-icon {
+    margin-top: -56px;
+  }
+
 }
