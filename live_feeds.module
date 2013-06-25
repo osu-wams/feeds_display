@@ -220,7 +220,7 @@ function live_feeds_insert($node) {
   // Check to see if we should enable the block
   if (isset($node->enable_block) && $node->enable_block != 'none') {
     // Get the default theme so we nock which block to add
-    $theme_default = variable_get('theme_default', 'garland');
+    $theme_default = variable_get('theme_default', 'bartik');
     $region = $node->enable_block;
     // Update the blocks to set the status and regions
     db_update('block')
