@@ -30,7 +30,8 @@
  */
 ?>
 
-<div class='live-feeds-block'>
-  <a class='rss-icon' href='<?php echo $link ?>' title='<?php echo $subject; ?> Feed'><i class="icon-rss"></i></a>
-  <?php echo $content; ?>
+<div id='feeds-display'>
+  <a class='rss-icon' href='<?php print $block->link ?>'>
+  <img src='http://oregonstate.edu/osuhomepage/images/rss_icon.png' width='16' height='16' /></a>
+  <?php print $block->content; ?>
 </div>

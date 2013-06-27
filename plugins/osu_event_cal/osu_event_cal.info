@@ -1,7 +1,0 @@
-; $Id
-name = OSU Event Calendar 
-description = A plugin for Feeds Display to parse the RSS from the OSU Master Calendar
-dependencies[] = feeds_display
-package = OSU
-core = 7.x
-version = 7.x-0.3

@@ -1,0 +1,63 @@
+<?php
+/**
+ * Install the database for Feeds Display 
+ */
+function feeds_display_install() {
+  drupal_install_schema('feeds_display');
+}
+
+function feeds_display_uninstall() {
+  drupal_uninstall_schema('feeds_display');
+  
+  /* Delete any variables too
+    variable_del('feeds_display_XXX'); 
+  */ 
+}
+
+function feeds_display_schema() {
+  $schema['feeds_display'] = array(
+    'fields' => array(
+      'fid'   => array(
+        'type'           => 'int', 
+        'auto_increment' => true,
+        'unsigned'       => true, 
+        'not null'       => true, 
+      ),
+      'nid'   => array(
+        'type'     => 'int',  
+        'unsigned' => true, 
+        'not null' => true, 
+        'default'  => 0
+      ),
+      'bid'   => array(
+        'type'     => 'int',  
+        'unsigned' => true, 
+        'not null' => true, 
+        'default'  => 0
+      ),
+      'feed_title' => array(
+        'type'     => 'text', 
+        'not null' => true
+      ),
+      'feed_url' => array(
+        'type'     => 'text', 
+        'not null' => true
+      ),
+      'num_items'=> array(
+        'type'     => 'int',  
+        'not null' => true, 
+        'default'  => 3
+      ),
+      'feed_type' => array(
+        'type'     => 'text', 
+        'not null' => true
+      ),
+    ),
+    'indexes' => array(
+      'fid' => array('fid'),
+    ),
+    'primary key' => array('fid'),
+  );
+  return $schema;
+}
+
