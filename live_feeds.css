@@ -148,6 +148,10 @@
   text-transform: none;
 }
 
+.live-feeds-block .calendar-item p.title {
+  display: block;
+}
+
 .live-feeds-block .news-item  h3.title,
 .live-feeds-block .calendar-item .description,
 .live-feeds-block .calendar-item .description p.title,
