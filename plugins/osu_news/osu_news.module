@@ -71,7 +71,9 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
 
 			// Get the body
 			elseif (strpos($class, 'field-field-body')) {
-       	$body =  mb_convert_encoding($div->getElementsByTagName('div')->item(2)->nodeValue, "ISO_8859-1", "UTF-8");
+        if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
+       	  $body =  mb_convert_encoding($div->getElementsByTagName('div')->item(2)->nodeValue, "ISO_8859-1", "UTF-8");
+        }
 	    }
 		}
     $content .=  '<div class="news-item">';
