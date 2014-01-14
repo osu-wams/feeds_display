@@ -69,11 +69,6 @@
   margin: -40px 0 0;
 }
 
-.ie #sidebar-first .block-live-feeds h2,
-.ie #sidebar-second .block-live-feeds h2 {
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f2f2f2', endColorstr='#f6f6f6',GradientType=0 ); /* IE6-8 */
-}
-
 .live-feeds-block > div:last-child,
 .live-feeds-block > div.calendar-item:last-child {
   border-bottom: none;
@@ -105,7 +100,7 @@
 
 .live-feeds-block .icon-rss {
   color: #fff;
-  padding: 7px 0 0 7px;
+  padding: 5px 0 0 7px;
   font-size: 20px;
 }
 
@@ -119,10 +114,6 @@
   padding-top: 5px !important;
 }
 
-#sidebar-first .live-feeds-block .icon-rss,
-#sidebar-second .live-feeds-block .icon-rss {
-  padding: 9px 0 0 8px;
-}
 /* add focus/hover/acitve effects?
 .live-feeds-block .rss-icon:hover,
 .live-feeds-block .rss-icon:focus,
