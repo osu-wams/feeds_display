@@ -3,6 +3,6 @@ name =  Live Feeds
 description = A module to create blocks for custom feeds
 package = Other
 core = 7.x
-version = 7.x-1.1.1
+version = 7.x-1.1.2
 scripts[] = live_feeds.js
 stylesheets[all][] = live_feeds.css
