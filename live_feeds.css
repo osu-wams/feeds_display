@@ -2,6 +2,10 @@
   clear: both;
 }
 
+.block-live-feeds {
+  position: relative;
+}
+
 .block-live-feeds h2 {
   background: #373737;
   color: #fff;
