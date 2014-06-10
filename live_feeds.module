@@ -5,6 +5,7 @@
  *
  * Created:    4/27/2011
  * Author(s):  Paul Lieberman - Central Web Services - Oregon State University
+ *             Richard Middaugh - Central Web Services - Oregon State University
  *
  * Purpose:   A Drupal module to process custom feeds based on installed parsers
  *
@@ -12,6 +13,7 @@
  *
  *  2012-06-21 - PL - Add ability to add the blocks to the region from the form.
  *                    No longer necessary to got to the blocks admin page.
+ *  2014-05-19 - RM - Updated module to use field API
  *
  */
 
@@ -66,56 +68,21 @@ function live_feeds_help($path, $arg){
  * Implements hook_perm()
  */
 function live_feeds_permission(){
-  return array('create feed' => array(
-        'title' => t('Create a new feed.'),
-        ),
-      'edit feed'   => array(
-        'title' => t('Edit an existing feed'),
-        )
-      );
-}
-
-
-/**
- * Implementation of hook_menu()
- *
- * Add a link to the Site Configuration menu
- */
-function live_feeds_menu() {
-
-  $items = array();
-
-  $items['admin/config/content/live_feeds'] = array(
-    'title'            => 'Live Feeds',
-    'description'      => 'Manage settings for Live Feeds',
-    'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('live_feeds_admin'),
-    'access arguments' => array('access administration pages'),
-    'type'             => MENU_NORMAL_ITEM,
+  return array(
+    'create feed' => array(
+      'title' => t('Create a new feed.'),
+    ),
+    'edit feed' => array(
+      'title' => t('Edit an existing feed'),
+    )
   );
-  return $items;
-}
-
-/**
- * Admin settings page
- *
- */
-function live_feeds_admin() {
-
-  $form['live_feeds_admin'] = array(
-    '#type'   => 'markup',
-    '#title'  => t('Live Feeds settings'),
-    '#markup' => t('<p>There are no configuration options available at this time.</p>'),
-  );
-  return system_settings_form($form);
 }
 
 /**
  * Implementation of hook_form()
  *
  */
-function live_feeds_form(&$node, &$form_state) {
-
+function live_feeds_form_feed_node_form_alter(&$form, &$form_state) {
   // Get the list of available parser plugins
   $parsers = live_feeds_get_available_parsers();
   if (!$parsers) {
@@ -132,163 +99,79 @@ function live_feeds_form(&$node, &$form_state) {
   $regions = $themes[$default_theme]->info['regions'];
   array_unshift($regions, array('none' => 'None'));
 
-  $from = array();
+  // Set default and size for "Number of Items" field
+  $form['num_items']['und'][0]['value']['#default_value'] = 5;
+  $form['num_items']['und'][0]['value']['#size'] = 3;
 
   // The feed type - based on available parsers
-  $form['live_feeds_form']['feed_type'] = array(
-    '#type'          => 'select',
-    '#title'         => t('The type of feed'),
-    '#description'   => t('Select which type of feed you want to configure.'),
-    '#options'       => $options,
-		'#default_value' => isset($node->feed_type) ? $node->feed_type : '',
-  );
-
-  // The block title
-  $form['live_feeds_form']['title'] = array(
-    '#type'          => 'textfield',
-    '#title'         => t('Block Title'),
-    '#description'   => t('This is name you will see in the Blocks list'),
-    '#required'      => TRUE,
-		'#default_value' => $node->title,
-  );
-
-  // The feed URL
-  $form['live_feeds_form']['feed_url'] = array(
-    '#type'          => 'textfield',
-    '#title'         => t('URL of your feed'),
-    '#description'   => t('This is the URL of your feed. It will normally be an .rss or .xml file'),
-    '#required'      => TRUE,
-		'#default_value' => isset($node->feed_url) ? $node->feed_url: '',
-  );
-
-  // Number of items to display
-  $form['live_feeds_form']['num_items'] = array(
-    '#type'          => 'textfield',
-    '#title'         => t('Number of items to display'),
-    '#default_value' => 5, //$feed->num_items ? $feed->num_items : '5',
-    '#description'   => t('Please enter the number of items you want displayed'),
-    '#required'      => TRUE,
-  );
+  $form['feed_type']['und']['#options'] = $options;
 
   // Add blocks to region
-  $form['live_feeds_form']['enable_block'] = array(
+  $form['enable_block'] = array(
     '#type'          => 'select',
     '#title'         => t('Add block to a theme region'),
     '#description'   => t('This will enable your feed and display it on the front page.'),
     '#options'       => $regions,
     '#default_value' => 'none',
   );
-
-  $form['live_feeds_form']['#submit'] = array('live_feeds_submit_handler');
+  $form['#validate'][] = 'live_feeds_feed_node_form_validate';
+  $form['#submit'][] = 'live_feeds_feed_node_form_submit';
 
   return $form;
 }
 
 
 /**
- * Implementation of hook_validate.
- *
+ * Validation callback for feed_node_form.
  */
-function live_feeds_validate($node) {
-  if ( $node->feed_type == 'select') {
-    form_set_error('', t('Please select a feed type'));
+function live_feeds_feed_node_form_validate($form, $form_state) {
+  if ($form_state['values']['feed_type']['und'][0]['value'] == 'select') {
+    form_set_error('feed_type', t('Please select a feed type.'));
   }
-  elseif ( ! preg_match("/^http/", $node->feed_url )) {
-    form_set_error('live_feeds_form][feed_url', t('Please provide a valid feed URL'));
+  if (!preg_match("/^http/", $form_state['values']['url']['und'][0]['value'])) {
+    form_set_error('url', t('Please provide a valid feed URL.'));
   }
 }
 
 /**
- * Implements hook_insert()
+ * Submit callback for feed_node_form.
  */
-function live_feeds_insert($node) {
-
-  // Insert a record into our table
-  $feed = array(
-    'nid'        => $node->nid,
-    'feed_title' => $node->title,
-    'feed_url'   => $node->feed_url,
-    'feed_type'  => $node->feed_type,
-    'num_items'  => $node->num_items,
-  );
-
-  drupal_write_record('live_feeds', $feed);
-
+function live_feeds_feed_node_form_submit($form, $form_state) {
   // Flush cache to get the feeds added to the block table
   drupal_flush_all_caches();
 
   // Check to see if we should enable the block
-  if (isset($node->enable_block) && $node->enable_block != 'none') {
+  if (isset($form_state['values']['enable_block']) && $form_state['values']['enable_block'] != 'none') {
     // Get the default theme so we nock which block to add
     $theme_default = variable_get('theme_default', 'bartik');
-    $region = $node->enable_block;
+    $region = $form_state['values']['enable_block'];
     // Update the blocks to set the status and regions
     db_update('block')
       ->fields(array('region' => $region, 'status' => 1))
       ->condition('theme', $theme_default)
-      ->condition('title', $node->title)
+      ->condition('title', $form_state['values']['feed_title']['und'][0]['value'])
       ->execute();
 
-    drupal_set_message('Your feed ' . $node->title . ' is now enabled.');
+    drupal_set_message('Your feed ' . $form_state['values']['feed_title']['und'][0]['value'] . ' is now enabled.');
   }
   else {
     drupal_set_message('Your feed has been created. You can now go to the Blocks page and add the feed to a region in your theme.');
   }
 }
 
-/**
- * Implements hook_update()
- */
-function live_feeds_update($node) {
-
-	// Update a record in our table
-  $feed = array(
-    'nid'        => $node->nid,
-    'feed_title' => $node->title,
-    'feed_url'   => $node->feed_url,
-    'feed_type'  => $node->feed_type,
-    'num_items'  => $node->num_items,
-  );
-  drupal_write_record('live_feeds', $feed, 'nid');
-}
-
 
 /**
  * Implements hook_delete()
  */
-function live_feeds_delete($node) {
-  // First get the feed id
-  $fid = db_query('SELECT fid FROM {live_feeds} WHERE nid=:nid ', array(':nid' => $node->nid))->fetchField();
-
-  // Now remove the record from the live_feeds table
-  db_delete('live_feeds')
-    ->condition('nid', $node->nid)
-    ->execute();
-
-  // Finally remove the record from the block table
-  db_delete('block')
-    ->condition('module', 'live_feeds')
-    ->condition('delta', $fid)
-    ->execute();
-}
-
-/**
- * Implements hook_load()
- */
-function live_feeds_load($nodes) {
-
-  $nids = array_keys($nodes);
-  $nid  = $nids[0];
-  $node = $nodes[$nid];
-
-  $result = db_query("SELECT feed_type, feed_url, num_items FROM {live_feeds} WHERE nid = :nid", array(':nid' => $nid));
-  foreach ($result as $feed ) {
-    $node->feed_url  = $feed->feed_url;
-    $node->feed_type = $feed->feed_type;
-    $node->num_items = $feed->num_items;
+function live_feeds_node_delete($node) {
+  if ($node->type == 'feed') {
+    // Remove the record from the block table
+    db_delete('block')
+      ->condition('module', 'live_feeds')
+      ->condition('delta', $node->nid)
+      ->execute();
   }
 }
-
 
 /**
  * Implementation of hook_block().
@@ -302,28 +185,37 @@ function live_feeds_block_info() {
 
   // Read our feeds from the db
   // and create the block for each one
-  $result = db_query("SELECT * FROM {live_feeds}");
-  foreach ($result as $feed ) {
-    $blocks[$feed->fid] = array(
-          'info'        => t($feed->feed_title),
-          'title'       => t($feed->feed_title),
-          'visibility'  => 1,
-          'pages'       => '<front>',
+  $result = live_feeds_get_feeds();
+  foreach ($result as $feed) {
+    $blocks[$feed->nid] = array(
+      'info'        => t($feed->feed_title['und'][0]['value']),
+      'title'       => t($feed->feed_title['und'][0]['value']),
+      'visibility'  => 1,
+      'pages'       => '<front>',
     );
   }
   return $blocks;
 }
 
-function live_feeds_block_view($delta = '') {
+function live_feeds_block_view($delta = NULL) {
 
   // Read our feeds from the db
-  $result = db_query("SELECT * from {live_feeds} where fid = :fid", array(':fid' => $delta));
+  $result = live_feeds_get_feeds($delta);
   foreach ($result as $feed) {
-    $content = load_feed($feed->feed_type, $feed->feed_url, $feed->num_items);
+    $feed_title = $feed->feed_title['und']['0']['value'];
+    $feed_type = $feed->feed_type['und']['0']['value'];
+    $feed_url = $feed->feed_url['und']['0']['value'];
+    $num_items = $feed->num_items['und']['0']['value'];
+    $content = live_feeds_load_feed($feed_type, $feed_url, $num_items);
     $block = array(
-        'subject'   =>  t($feed->feed_title),
-        'content'   =>  array('#theme'   => 'live_feeds_block', '#content' => $content, '#link' => $feed->feed_url, '#subject' => $feed->feed_title ),
-        'link'      =>  $feed->feed_url,
+      'subject'   =>  t($feed_title),
+      'content'   =>  array(
+        '#theme' => 'live_feeds_block',
+        '#content' => $content,
+        '#link' => $feed_url,
+        '#subject' => $feed_title,
+      ),
+      'link'      =>  $feed_url,
     );
   }
   return $block;
@@ -340,7 +232,7 @@ function live_feeds_block_view($delta = '') {
  *  An integer containing the number of items to display
  *
  */
-function load_feed($feed_type, $feed_url, $num_items) {
+function live_feeds_load_feed($feed_type, $feed_url, $num_items) {
 
   $parsers = live_feeds_get_available_parsers();
   if ($parsers[$feed_type]) {
@@ -404,4 +296,28 @@ function live_feeds_truncate_words($string, $words){
     return implode(' ', array_slice($string, 0, $words));
   }
   return implode(' ', $string);
+}
+
+/**
+ * Gets all live feed nodes.
+ *
+ * @param $nid integer Loads specific node id if set
+ * @return array of node objects, stdClass if single result, NULL if no results
+ */
+function live_feeds_get_feeds($nid = NULL) {
+  $feeds = array();
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')->entityCondition('bundle', 'feed');
+  if ($nid) {
+    $query->entityCondition('entity_id', $nid);
+  }
+
+  $result = $query->execute();
+  foreach ($result['node'] as $nid => $node_data) {
+    $feeds[] = node_load($nid);
+  }
+
+  if (empty($feeds)) return NULL;
+  if (count($feeds) === 1) return array_pop($feeds);
+  return $feeds;
 }
