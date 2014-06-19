@@ -218,6 +218,7 @@ function live_feeds_block_view($delta = NULL) {
 
   // Read our feeds from the db
   $result = live_feeds_get_feeds($delta);
+  $block = array();
   foreach ($result as $feed) {
     $feed_title = $feed->feed_title['und']['0']['value'];
     $feed_type = $feed->feed_type['und']['0']['value'];
@@ -331,6 +332,7 @@ function live_feeds_get_feeds($nid = NULL, $return_single_entry = FALSE) {
   }
 
   $result = $query->execute();
+  if (!isset($result['node'])) return array();
   foreach ($result['node'] as $nid => $node_data) {
     $feeds[] = node_load($nid);
   }
