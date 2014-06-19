@@ -208,6 +208,9 @@ function live_feeds_block_info() {
   return $blocks;
 }
 
+/**
+ * Implements hook_block_view().
+ */
 function live_feeds_block_view($delta = NULL) {
 
   // Read our feeds from the db
@@ -215,7 +218,7 @@ function live_feeds_block_view($delta = NULL) {
   foreach ($result as $feed) {
     $feed_title = $feed->feed_title['und']['0']['value'];
     $feed_type = $feed->feed_type['und']['0']['value'];
-    $feed_url = $feed->feed_url['und']['0']['value'];
+    $feed_url = $feed->url['und']['0']['value'];
     $num_items = $feed->num_items['und']['0']['value'];
     $content = live_feeds_load_feed($feed_type, $feed_url, $num_items);
     $block = array(
@@ -313,14 +316,15 @@ function live_feeds_truncate_words($string, $words){
  * Gets all live feed nodes.
  *
  * @param $nid integer Loads specific node id if set
+ * @param $return_single_entry boolean If TRUE, returns an entry by itself if it's the only feed loaded
  * @return array of node objects, stdClass if single result, NULL if no results
  */
-function live_feeds_get_feeds($nid = NULL) {
+function live_feeds_get_feeds($nid = NULL, $return_single_entry = FALSE) {
   $feeds = array();
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'node')->entityCondition('bundle', 'feed');
   if ($nid) {
-    $query->entityCondition('entity_id', $nid);
+    $query->propertyCondition('nid', $nid);
   }
 
   $result = $query->execute();
@@ -329,6 +333,6 @@ function live_feeds_get_feeds($nid = NULL) {
   }
 
   if (empty($feeds)) return NULL;
-  if (count($feeds) === 1) return array_pop($feeds);
+  if ($return_single_entry && count($feeds) === 1) return array_pop($feeds);
   return $feeds;
 }
