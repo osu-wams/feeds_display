@@ -137,22 +137,33 @@ function live_feeds_feed_node_form_validate($form, $form_state) {
  * Submit callback for feed_node_form.
  */
 function live_feeds_feed_node_form_submit($form, $form_state) {
+  // Handled for us by the field API
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function live_feeds_node_insert($node) {
+  // We do this in hook_node_insert() because it has the entries in the block table,
+  // whereas it is not there yet in a form submit callback.
+  if ($node->type != 'feed') return;
+
   // Flush cache to get the feeds added to the block table
   drupal_flush_all_caches();
 
   // Check to see if we should enable the block
-  if (isset($form_state['values']['enable_block']) && $form_state['values']['enable_block'] != 'none') {
+  if (isset($node->enable_block) && $node->enable_block != 'none') {
     // Get the default theme so we nock which block to add
     $theme_default = variable_get('theme_default', 'bartik');
-    $region = $form_state['values']['enable_block'];
+    $region = $node->enable_block;
     // Update the blocks to set the status and regions
     db_update('block')
       ->fields(array('region' => $region, 'status' => 1))
       ->condition('theme', $theme_default)
-      ->condition('title', $form_state['values']['feed_title']['und'][0]['value'])
+      ->condition('title', $node->feed_title['und'][0]['value'])
       ->execute();
 
-    drupal_set_message('Your feed ' . $form_state['values']['feed_title']['und'][0]['value'] . ' is now enabled.');
+    drupal_set_message('Your feed ' . $node->feed_title['und'][0]['value'] . ' is now enabled.');
   }
   else {
     drupal_set_message('Your feed has been created. You can now go to the Blocks page and add the feed to a region in your theme.');
