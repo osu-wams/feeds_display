@@ -105,6 +105,9 @@ function live_feeds_form_feed_node_form_alter(&$form, &$form_state) {
 
   // The feed type - based on available parsers
   $form['feed_type']['und']['#options'] = $options;
+  if (isset($form_state['node']->feed_type['und'][0]['value'])) {
+    $form['feed_type']['und']['#default_value'] = $form_state['node']->feed_type['und'][0]['value'];
+  }
 
   // Add blocks to region
   $form['enable_block'] = array(
