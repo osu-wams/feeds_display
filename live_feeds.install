@@ -62,7 +62,7 @@ function _live_feeds_setup_fields() {
         'type'    => 'options_select',
         'module'  => 'options',
         'active'  => 1,
-        'weight'  => '0',
+        'weight'  => '-8',
       ),
     );
 
@@ -112,7 +112,7 @@ function _live_feeds_setup_fields() {
       'widget' => array(
         'type'    => 'text',
         'active'  => 1,
-        'weight'  => '-2',
+        'weight'  => '-6',
       ),
     );
 
@@ -143,4 +143,6 @@ function _live_feeds_setup_fields() {
 
     field_create_instance($instance);
   }
+
+  drupal_flush_all_caches();
 }
