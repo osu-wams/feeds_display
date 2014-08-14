@@ -127,7 +127,10 @@ function live_feeds_form_feed_node_form_alter(&$form, &$form_state) {
 /**
  * Validation callback for feed_node_form.
  */
-function live_feeds_feed_node_form_validate($form, $form_state) {
+function live_feeds_feed_node_form_validate($form, &$form_state) {
+  // Set node title
+  $form_state['values']['title'] = $form_state['values']['feed_title']['und'][0]['value'];
+
   if ($form_state['values']['feed_type']['und'][0]['value'] == 'select') {
     form_set_error('feed_type', t('Please select a feed type.'));
   }
