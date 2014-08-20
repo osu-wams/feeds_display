@@ -2,30 +2,17 @@
   clear: both;
 }
 
-.block-live-feeds {
-  position: relative;
-}
-
-.block-live-feeds h2 {
-  background: #373737;
-  color: #fff;
-  border-radius: 3px 3px 0 0;
-  font-weight: normal !important;
-  margin-bottom: 18px;
-  padding: 0 25px 0 10px;
-  font-size: 16px;
-  line-height: 30px;
-  font-family: 'Gudea',Arial,Helvetica,Verdana,sans-serif;
-}
-
-#sidebar-first .block-live-feeds h2,
-#sidebar-second .block-live-feeds h2 {
-  padding: 3px 10px;
+.block.block-live-feeds > h2 {
+  padding-right: 25px; /* space for rss icon link on right */
 }
 
 .live-feeds-block > div:last-child,
 .live-feeds-block > div.calendar-item:last-child {
   border-bottom: none;
+}
+
+.block-live-feeds {
+  position: relative;
 }
 
 .live-feeds-block .rss-icon {
