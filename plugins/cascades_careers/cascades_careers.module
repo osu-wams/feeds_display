@@ -12,9 +12,9 @@
   */
  function cascades_careers_config() {
    $feed_config = array(
-    'feed_type'   => 'cascades_careers',
-    'feed_title' => 'Career Events',
-    'feed_url'    => 'http://blogs.oregonstate.edu/feed/rss2',
+    'feed_type'	    => 'cascades_careers',
+    'feed_title'    => 'Career Events',
+    'feed_url'	    => 'https://rss.myinterfase.com/rss/oregonstate_Cascades_Events.xml',
   );
   return $feed_config;
 }
@@ -52,12 +52,24 @@ function cascades_careers_live_feeds_parser($feed_url, $num_items) {
   foreach ($xml->channel->item as $story) {
     if (++$items > $num_items) break;
 
-    $date = date('M j, Y', strtotime($story->pubDate));
+    $desc   = $story->children('content', true)->encoded;
+  
+    /* Finding the Date: */
+    preg_match('/[0-9]*\/[0-9]*\/[0-9]*/', $desc, $dates);
+    $date   = $dates[0];
+    
+    /* Finding the Link: */
+    preg_match("/<a href='(.*)'>/", $desc, $links);
+    $link   = $links[1];
+
+    /*Finding the Location: */
+    preg_match("/Location:<\/b><\/td><td>((\w*\s*)*)/", $desc, $locations);
+    $location = $locations[1];
 
     $content .= '<div class="news-item">';
-    $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3>';
+    $content .= '<h3 class="title"><a href="' . $link . '">' . $story->title . '</a></h3>';
     $content .= '- <div class="date">' . $date . '</div> <br />';
-    $content .= '<div class="news-body">' . $story->description . '&nbsp;<a href="' . $story->link . '">Read full story.</a></div></div>';
+    $content .= '<div class="news-body">Location: ' . $location . '<br><a href="' . $link . '">Click to view more.</a></div></div>';
   }
   return $content;
 }
