@@ -33,21 +33,32 @@
  */
 function google_feedburner_live_feeds_parser($feed_url, $num_items) {
 
+  // Use cURL to get the file
+  $proxy = 'proxy.oregonstate.edu:3128';
+  $ch = curl_init();
+  $timeout = 0;
+  curl_setopt ($ch, CURLOPT_URL, $feed_url);
+  curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+  curl_setopt($ch, CURLOPT_PROXY, $proxy);
+  $file_contents = curl_exec($ch);
+  curl_close($ch);
+
+  $xml = simplexml_load_string($file_contents);
+
   $items = 0;
   $content = '';
   $thumb = '';
   $date_text = '';
   $body = '';
 
- 	$xml = simplexml_load_file("$feed_url");
-	$html = new DOMDocument; // Need this to parse the description
+  $html = new DOMDocument; // Need this to parse the description
 
   foreach ($xml->channel->item as $story) {
     if (++$items > $num_items) break;
+	unset($teaser); // Don't reuse content from previous iteration
 
-		unset($teaser); // Don't reuse content from previous iteration
-
-		// Parse the description into HTML divs
+    // Parse the description into HTML divs
     // and look for specific classes
     $html->loadHTML($story->description);
     foreach ($html->getElementsByTagName('div') as $div) {
