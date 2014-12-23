@@ -19,22 +19,6 @@
 
 
 /**
- * Implements hook_init()
-*/
-function live_feeds_init() {
-
-  // Get the parsers and add them to the Javascript settings array
-  $parsers = live_feeds_get_available_parsers();
-  drupal_add_js(array('live_feeds' => $parsers), 'setting');
-
-  // Add CSS for each parser
-  foreach ($parsers as $module => $values) {
-    drupal_add_css( drupal_get_path('module', $module) . '/' . $module . '.css');
-  }
-}
-
-
-/**
  * Implements hook_node_info()
  */
 function live_feeds_node_info() {
@@ -302,6 +286,13 @@ function live_feeds_get_available_parsers() {
         'url'         => $config['feed_url'],
       );
     }
+  }
+
+  drupal_add_js(array('live_feeds' => $parsers), 'setting');
+
+  // Add CSS for each parser
+  foreach ($parsers as $module => $values) {
+    drupal_add_css( drupal_get_path('module', $module) . '/' . $module . '.css');
   }
 
   return $parsers;

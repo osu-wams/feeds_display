@@ -1,7 +1,0 @@
-; $Id
-name = Cascades Careers
-description = A plugin for Live Feeds to parse the RSS for Cascades Careers.
-dependencies[] = live_feeds
-package = OSU
-core = 7.x
-version = 7.x-1.0.0
