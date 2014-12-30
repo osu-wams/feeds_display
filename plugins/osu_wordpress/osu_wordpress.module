@@ -33,6 +33,8 @@
  */
 function osu_wordpress_live_feeds_parser($feed_url, $num_items) {
 
+  $feed_url .= (substr($feed_url, -1) == '/' ? '' : '/');
+
   // Use cURL to get the file
   $proxy = 'proxy.oregonstate.edu:3128';
   $ch = curl_init();
