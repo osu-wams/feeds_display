@@ -59,7 +59,7 @@ function osu_wordpress_live_feeds_parser($feed_url, $num_items) {
     $content .= '<div class="news-item">';
     $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3>';
     $content .= '- <div class="date">' . $date . '</div> <br />';
-    $content .= '<div class="news-body">' . $story->description . '&nbsp;<a href="' . $story->link . '">Read full story.</a></div></div>';
+    $content .= '<div class="news-body">' . $story->description . '</div></div>';
   }
   return $content;
 }
