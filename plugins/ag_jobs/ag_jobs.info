@@ -1,0 +1,7 @@
+; $Id
+name =  Ag Jobs Feed
+description = A plugin for Live Feeds to parse the RSS from Ag jobs
+dependencies[] = live_feeds
+package = OSU
+core = 7.x
+version = 7.x-1.0.0
