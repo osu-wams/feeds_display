@@ -1,0 +1,66 @@
+<?php
+/**
+ * @file beaver_jobs.module
+ * A live feeds parser for https://rss.myinterfase.com/rss/oregonstate_beaver_jobs.xml
+ */
+
+
+ /**
+  * @returns
+  *   A configuration array for this parser
+  */
+ function beaver_jobs_config() {
+   $feed_config = array(
+    'feed_type'   => 'beaver_jobs_parser',
+    'feed_title' => 'Ag Jobs Parser',
+    'feed_url'    => 'https://rss.myinterfase.com/rss/oregonstate_beaver_jobs.xml',
+  );
+  return $feed_config;
+}
+
+
+ /**
+ * Parse the RSS and display the feed
+ *
+ * @param $feed_url
+ *  A string containing he URL of the feed
+ * @param $num_items
+ *  An integer containing the number of items to display
+ *
+ * @return
+ *  A string with the formated HTML to display
+ */
+function beaver_jobs_live_feeds_parser($feed_url, $num_items) {
+
+  // Use cURL to get the file
+  $proxy = 'proxy.oregonstate.edu:3128';
+  $ch = curl_init();
+  $timeout = 0;
+  curl_setopt ($ch, CURLOPT_URL, $feed_url);
+  curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+  curl_setopt($ch, CURLOPT_PROXY, $proxy);
+  $file_contents = curl_exec($ch);
+  curl_close($ch);
+
+  // Convert up the content:encoded tag into something we can parse
+  $file_contents = str_replace("<content:encoded>","<content>",$file_contents);
+  $file_contents = str_replace("</content:encoded>","</content>",$file_contents);
+
+  // Now parse it as XML
+  $xml = simplexml_load_string($file_contents);
+  $items = 0;
+  $content = '';
+
+  foreach ($xml->channel->item as $item) {
+    if (++$items > $num_items) break;
+    $title = $item->title;
+    $content .= '<div class="news-item">';
+    $content .= '<h3 class="title">' . $item->title . '</h3>';
+    $content .= '<div class="news-body">' . $item->content . '</div></div>';
+  }
+  return $content;
+}
+
+
+
