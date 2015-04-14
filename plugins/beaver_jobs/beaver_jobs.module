@@ -13,7 +13,7 @@
    $feed_config = array(
     'feed_type'   => 'beaver_jobs_parser',
     'feed_title' => 'Ag Jobs Parser',
-    'feed_url'    => 'https://rss.myinterfase.com/rss/oregonstate_beaver_jobs.xml',
+    'feed_url'    => 'https://rss.myinterfase.com/rss/oregonstate_ag_jobs.xml',
   );
   return $feed_config;
 }
