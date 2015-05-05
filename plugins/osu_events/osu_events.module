@@ -78,6 +78,8 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
   $file_contents = curl_exec($ch);
   curl_close($ch);
 
+  $file_contents = preg_replace('/[[:^print:]]/', '', $file_contents);
+
   $xml = simplexml_load_string($file_contents);
   $html = new DOMDocument; // Need this to parse the description
 
