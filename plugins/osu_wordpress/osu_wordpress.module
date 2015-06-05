@@ -33,8 +33,6 @@
  */
 function osu_wordpress_live_feeds_parser($feed_url, $num_items) {
 
-  $feed_url .= (substr($feed_url, -1) == '/' ? '' : '/');
-
   // Capture feed
   $result = drupal_http_request($feed_url);
 
