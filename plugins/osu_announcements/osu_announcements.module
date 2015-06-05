@@ -32,16 +32,13 @@
  *  A string with the formated HTML to display
  */
 function osu_announcements_live_feeds_parser($feed_url, $num_items) {
-  // Use cURL to get the file
-  $proxy = 'proxy.oregonstate.edu:3128';
-  $ch = curl_init();
-  $timeout = 0;
-  curl_setopt ($ch, CURLOPT_URL, $feed_url);
-  curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-  curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-  curl_setopt($ch, CURLOPT_PROXY, $proxy);
-  $file_contents = curl_exec($ch);
-  curl_close($ch);
+
+  // Capture feed
+  $result = drupal_http_request($feed_url);
+
+  // Strip non-print characters from raw feed
+  $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
+
   $xml = simplexml_load_string($file_contents);
   $items = 0;
   $content = '';
@@ -50,7 +47,11 @@ function osu_announcements_live_feeds_parser($feed_url, $num_items) {
     if (++$items > $num_items) break;
 
     $date = date('M j, Y', strtotime($item->pubDate));
-    $body = live_feeds_truncate_words($item->description, 25);
+
+    // Strip html except for links
+    $body = strip_tags($item->description, '<a>');
+
+    $body = live_feeds_truncate_words($body, 25);
 
     $tidy = new tidy();
     $body = $tidy->repairString($body, array('show-body-only' => 1));
@@ -58,7 +59,7 @@ function osu_announcements_live_feeds_parser($feed_url, $num_items) {
     $content .=  '<div class="news-item">';
     $content .= '<h3 class="title"><a href="' . $item->link . '">' . $item->title . '</a></h3> - ';
     $content .= '<div class="date">'  . $date . '</div>';
-    $content .= '<div class="news-body">' . $body . '&hellip; <a href="' . $item->link . '">&nbsp;Read full story.</a></div>';
+    $content .= '<div class="news-body">' . $body . '&hellip; <a href="' . $item->link . '">Read full story.</a></div>';
     $content .= '</div>';
   }
   return $content;

@@ -32,16 +32,11 @@
  */
 function beaver_jobs_live_feeds_parser($feed_url, $num_items) {
 
-  // Use cURL to get the file
-  $proxy = 'proxy.oregonstate.edu:3128';
-  $ch = curl_init();
-  $timeout = 0;
-  curl_setopt ($ch, CURLOPT_URL, $feed_url);
-  curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-  curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-  curl_setopt($ch, CURLOPT_PROXY, $proxy);
-  $file_contents = curl_exec($ch);
-  curl_close($ch);
+  // Capture feed
+  $result = drupal_http_request($feed_url);
+
+  // Strip non-print characters from raw feed
+  $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
 
   // Convert up the content:encoded tag into something we can parse
   $file_contents = str_replace("<content:encoded>","<content>",$file_contents);

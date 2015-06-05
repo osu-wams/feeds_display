@@ -4,4 +4,4 @@ description = A plugin for Live Feeds to parse the RSS from the OSU Events Calen
 dependencies[] = live_feeds
 package = OSU
 core = 7.x
-version = 7.x-1.2.0
+version = 7.x-1.3.0
