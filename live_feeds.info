@@ -1,9 +1,9 @@
 ; $Id
 name =  Live Feeds
 description = A module to create blocks for custom feeds
-package = OSU
+package = Live Feeds
 core = 7.x
-version = 7.x-2.3.1
+version = 7.x-2.3.2
 dependencies[] = "list"
 dependencies[] = "text"
 dependencies[] = "options"
