@@ -2,6 +2,11 @@
   clear: both;
 }
 
+.live-feeds-block.live-feeds-view {
+  position: relative;
+  top: -9px;
+}
+
 .block.block-live-feeds > h2 {
   padding-right: 25px; /* space for rss icon link on right */
 }
@@ -13,6 +18,18 @@
 
 .block-live-feeds {
   position: relative;
+}
+
+.live-feeds-block.live-feeds-view .rss-icon {
+  position: absolute;
+  right: 0;
+  top: -50px;
+  height: 30px;
+  width: 30px;
+  border-radius: 0 3px 0 0;
+  border-left: 1px solid #fff;
+  background: #c34500;
+  text-decoration: none;
 }
 
 .live-feeds-block .rss-icon {

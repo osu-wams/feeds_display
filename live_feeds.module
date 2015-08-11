@@ -17,6 +17,97 @@
  *
  */
 
+/**
+ * Implements hook_views_api().
+ *
+ */
+function live_feeds_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Define feed_type field handler
+ */
+class live_feeds_type_handler_field extends views_handler_field {
+  function get_value($values, $field = NULL) {
+
+    // Retrieve field names
+    $alias = isset($field) ? $this->aliases[$field] : $this->field_alias;
+
+    if (isset($values->{$alias})){
+      // $values->{$alias} contains the field value which is our feed type
+      return $values->{$alias};
+    }
+    else{
+      return NULL;
+    }
+  }
+}
+
+
+/**
+ * Define feed_type_in_operator filter
+ */
+class live_feeds_type_in_operator extends views_handler_filter_in_operator {
+  // overwrite the get_value_options function.
+  function get_value_options() {
+
+    // Check if we've already set options recently
+    if (isset($this->value_options)) {
+      return;
+    }
+
+    // Get the list of available parser plugins
+    $parsers = live_feeds_get_available_parsers();
+    if (!$parsers) {
+      drupal_set_message(t('No available parsers'));
+    }
+    $options = array();
+    foreach ($parsers as $parser => $info) {
+      $options[$parser] = $info['name'];
+    }
+
+    // Copy types to options
+    $this->value_options = $options;
+  }
+
+  function query() {
+    // Doublecheck and retrieve field names
+    $this->ensure_my_table();
+    $field = "$this->table_alias.$this->real_field";
+
+    // Add conditions to view query
+    $this->query->add_where(
+      $this->options['group'],
+      db_or()
+        ->condition($field, $this->options['value'], 'in')
+    );
+  }
+
+}
+
+/**
+ * Implements hook_views_data_alter().
+ *
+ */
+function live_feeds_views_data_alter(&$data) {
+  $data['field_data_feed_type']['table']['group'] = t('Feed');
+
+  $data['field_data_feed_type']['feed_type_value'] = array(
+    'field' => array(
+      'title' => t('Feed Type'),
+      'help' => t('This is the feed type of the feed node.'),
+      'handler' => 'live_feeds_type_handler_field',
+    ),
+    'filter' => array(
+      'title' => t('Feed Type'),
+      'help' => t('Filter by feed type.'),
+      'handler' => 'live_feeds_type_in_operator',
+    ),
+  );
+}
 
 /**
  * Implements hook_node_info()
@@ -30,7 +121,7 @@ function live_feeds_node_info() {
       'description' => t("A Feed is a summary of items or events from another source."),
       'help'        => 'Create a feed.',
       'title_label' => 'Feed',
-      'has_body'    => false,
+      'has_body'    => FALSE,
     )
   );
 }
@@ -41,7 +132,7 @@ function live_feeds_node_info() {
 function live_feeds_help($path, $arg){
   switch($path) {
     case 'node/add#feed':
-      return t('A Feed. Use this page to add a feed.');
+      return t('A Feed. Use this page to configure a feed.');
     case 'admin/help#feed':
       return t('<p>A module for creating and viewing feeds.</p>');
   }
@@ -59,6 +150,44 @@ function live_feeds_permission(){
     'edit feed' => array(
       'title' => t('Edit an existing feed'),
     )
+  );
+}
+
+/**
+ * Implementation of hook_node_view()
+ *
+ */
+function live_feeds_node_view($node, $view_mode, $langcode) {
+  if ($view_mode == 'full' && $node->type == 'feed') {
+    $content = live_feeds_load_feed($node->feed_type['und'][0]['value'],
+       $node->url['und'][0]['value'], $node->num_items['und'][0]['value']);
+    $node->title = array();
+    $node->content['feed_content'] = array(
+      '#theme' => 'live_feeds_node',
+      '#content' => $content,
+      '#link' => $node->url['und'][0]['value'],
+    );
+  }
+  if ($view_mode == 'contextual_view' && $node->type == 'feed') {
+    $content = live_feeds_load_feed($node->feed_type['und'][0]['value'],
+       $node->url['und'][0]['value'], $node->num_items['und'][0]['value']);
+    $node->title = array();
+    $node->content['feed_content'] = array(
+      '#theme' => 'live_feeds_view',
+      '#content' => $content,
+      '#link' => $node->url['und'][0]['value'],
+    );
+  }
+
+}
+
+/**
+ *  Implementation of hook_entity_info_alter()
+ */
+function live_feeds_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['contextual_view'] = array(
+    'label' => t('Contextual View'),
+    'custom settings' => TRUE,
   );
 }
 
@@ -256,6 +385,16 @@ function live_feeds_theme() {
   $theme['live_feeds_block'] = array(
       'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
       'template'  => 'live-feeds-block',
+      'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
+  );
+  $theme['live_feeds_view'] = array(
+      'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
+      'template'  => 'live-feeds-view',
+      'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
+  );
+  $theme['live_feeds_node'] = array(
+      'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
+      'template'  => 'live-feeds-node',
       'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
   );
   return $theme;

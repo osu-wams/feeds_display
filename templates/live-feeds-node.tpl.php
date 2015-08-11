@@ -31,7 +31,6 @@
 ?>
 
 <div class='live-feeds-block'>
-  <a class='rss-icon' href='<?php echo $link ?>' title='<?php echo $subject; ?> Feed'><i class="icon-rss"></i></a>
   <?php echo $content; ?>
 </div>
 
