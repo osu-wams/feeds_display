@@ -6,6 +6,7 @@
  * Created:    4/27/2011
  * Author(s):  Paul Lieberman - Central Web Services - Oregon State University
  *             Richard Middaugh - Central Web Services - Oregon State University
+ *             Roberto Nunez  - Central Web Services -  Oregon State University
  *
  * Purpose:   A Drupal module to process custom feeds based on installed parsers
  *
@@ -15,6 +16,8 @@
  *                    No longer necessary to got to the blocks admin page.
  *  2014-05-19 - RM - Updated module to use field API
  *
+ *  2015-08-11 - RN - Add contextual view and update nodes and templates to allow
+ *                    standardized views blocks to display group-specific feeds
  */
 
 /**

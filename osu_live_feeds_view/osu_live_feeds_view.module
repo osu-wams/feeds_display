@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the OSU Live Feeds View feature.
+ */
+
+include_once 'osu_live_feeds_view.features.inc';
