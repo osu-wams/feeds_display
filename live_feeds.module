@@ -46,7 +46,6 @@ class live_feeds_type_handler_field extends views_handler_field {
   }
 }
 
-
 /**
  * Define feed_type_in_operator filter
  */
@@ -236,7 +235,6 @@ function live_feeds_form_feed_node_form_alter(&$form, &$form_state) {
   return $form;
 }
 
-
 /**
  * Validation callback for feed_node_form.
  */
@@ -288,7 +286,6 @@ function live_feeds_node_insert($node) {
     drupal_set_message('Your feed has been created. You can now go to the Blocks page and add the feed to a region in your theme.');
   }
 }
-
 
 /**
  * Implements hook_delete()
@@ -400,7 +397,6 @@ function live_feeds_theme() {
   return $theme;
 }
 
-
 /**
  * Return a list of available parsers.
  *
@@ -474,3 +470,4 @@ function live_feeds_get_feeds($nid = NULL, $return_single_entry = FALSE) {
   if ($return_single_entry && count($feeds) === 1) return array_pop($feeds);
   return $feeds;
 }
+
