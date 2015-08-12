@@ -2,6 +2,10 @@
   clear: both;
 }
 
+.live-feeds-block.live-feeds-view {
+  position: relative;
+}
+
 .block.block-live-feeds > h2 {
   padding-right: 25px; /* space for rss icon link on right */
 }
@@ -13,6 +17,29 @@
 
 .block-live-feeds {
   position: relative;
+}
+
+.live-feeds-block.live-feeds-view .rss-icon {
+  position: absolute;
+  right: 0;
+  height: 30px;
+  width: 30px;
+  border-radius: 0 3px 0 0;
+  border-left: 1px solid #fff;
+  background: #c34500;
+  text-decoration: none;
+}
+
+.live-feeds-block.live-feeds-view .block-title {
+  background: none repeat scroll 0 0 #373737;
+  border-radius: 3px 3px 0 0;
+  color: #ffffff;
+  font-family: 'Gudea', Arial, Helvetica, Verdana, sans-serif;
+  font-size: 16px !important;
+  font-weight: normal !important;
+  line-height: 30px;
+  margin-bottom: 18px;
+  padding: 0 10px;
 }
 
 .live-feeds-block .rss-icon {
@@ -68,4 +95,11 @@
  */
 .block-live-feeds .contextual-links-wrapper {
   right: 25px;
+}
+
+/* Move the contextual links gear menu over
+ * so that it is not under the rss icon
+ */
+.view-osu-live-feeds .contextual-links-wrapper {
+  top: 50px;
 }
