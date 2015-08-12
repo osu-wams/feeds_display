@@ -175,6 +175,7 @@ function live_feeds_node_view($node, $view_mode, $langcode) {
        $node->url['und'][0]['value'], $node->num_items['und'][0]['value']);
     $node->title = array();
     $node->content['feed_content'] = array(
+      '#subject' => $node->feed_title['und'][0]['value'],
       '#theme' => 'live_feeds_view',
       '#content' => $content,
       '#link' => $node->url['und'][0]['value'],
