@@ -170,6 +170,33 @@ function osu_live_feeds_view_views_default_views() {
   $handler->display->display_options['filters']['feed_type_value']['value'] = array(
     'osu_wordpress' => 'osu_wordpress',
   );
+
+  /* Display: OSU Google Calendar */
+  $handler = $view->new_display('block', 'OSU Google Calendar', 'gcal');
+  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
+  $handler->display->display_options['defaults']['filters'] = FALSE;
+  /* Filter criterion: Content: Published */
+  $handler->display->display_options['filters']['status']['id'] = 'status';
+  $handler->display->display_options['filters']['status']['table'] = 'node';
+  $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['value'] = 1;
+  $handler->display->display_options['filters']['status']['group'] = 1;
+  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+  /* Filter criterion: Content: Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'node';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = array(
+    'feed' => 'feed',
+  );
+  $handler->display->display_options['filters']['type']['group'] = 1;
+  /* Filter criterion: Feed: Feed Type */
+  $handler->display->display_options['filters']['feed_type_value']['id'] = 'feed_type_value';
+  $handler->display->display_options['filters']['feed_type_value']['table'] = 'field_data_feed_type';
+  $handler->display->display_options['filters']['feed_type_value']['field'] = 'feed_type_value';
+  $handler->display->display_options['filters']['feed_type_value']['value'] = array(
+    'gcal_feed' => 'gcal_feed',
+  );
   $export['osu_live_feeds'] = $view;
 
   return $export;
