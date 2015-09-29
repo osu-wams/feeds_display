@@ -27,9 +27,7 @@ function osu_live_feeds_view_context_default_contexts() {
     ),
     'path' => array(
       'values' => array(
-        '~main' => '~main',
-        '~main/*' => '~main/*',
-        '~group/*' => '~group/*',
+        '~*' => '~*',
       ),
     ),
   );
@@ -59,6 +57,12 @@ function osu_live_feeds_view_context_default_contexts() {
           'delta' => 'osu_live_feeds-wordpress',
           'region' => 'main_second',
           'weight' => '-9',
+        ),
+        'views-osu_live_feeds-gcal' => array(
+          'module' => 'views',
+          'delta' => 'osu_live_feeds-gcal',
+          'region' => 'main_second',
+          'weight' => '-8',
         ),
       ),
     ),
