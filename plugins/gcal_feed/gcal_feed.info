@@ -1,0 +1,8 @@
+; $Id
+name = Google Calendar Feed
+description = A plugin for Live Feeds to parse a Google Calendar, requires an API key.
+dependencies[] = live_feeds
+package = Live Feeds
+core = 7.x
+version = 7.x-1.3.0
+configure = admin/config/content/gcal_feed
