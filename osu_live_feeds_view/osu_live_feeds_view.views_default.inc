@@ -34,10 +34,15 @@ function osu_live_feeds_view_views_default_views() {
   $handler->display->display_options['style_plugin'] = 'default';
   $handler->display->display_options['row_plugin'] = 'entity';
   $handler->display->display_options['row_options']['view_mode'] = 'contextual_view';
+  /* Relationship: OG membership: OG membership from Node */
+  $handler->display->display_options['relationships']['og_membership_rel']['id'] = 'og_membership_rel';
+  $handler->display->display_options['relationships']['og_membership_rel']['table'] = 'node';
+  $handler->display->display_options['relationships']['og_membership_rel']['field'] = 'og_membership_rel';
   /* Contextual filter: OG membership: Group ID */
   $handler->display->display_options['arguments']['gid']['id'] = 'gid';
   $handler->display->display_options['arguments']['gid']['table'] = 'og_membership';
   $handler->display->display_options['arguments']['gid']['field'] = 'gid';
+  $handler->display->display_options['arguments']['gid']['relationship'] = 'og_membership_rel';
   $handler->display->display_options['arguments']['gid']['default_action'] = 'default';
   $handler->display->display_options['arguments']['gid']['default_argument_type'] = 'og_context';
   $handler->display->display_options['arguments']['gid']['summary']['number_of_records'] = '0';
@@ -58,10 +63,6 @@ function osu_live_feeds_view_views_default_views() {
     'feed' => 'feed',
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
-
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'osu_live_feeds');
-  $handler->display->display_options['path'] = 'view-feeds';
 
   /* Display: OSU News */
   $handler = $view->new_display('block', 'OSU News', 'news');
@@ -201,3 +202,4 @@ function osu_live_feeds_view_views_default_views() {
 
   return $export;
 }
+

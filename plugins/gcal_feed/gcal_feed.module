@@ -1,0 +1,300 @@
+<?php
+
+/**
+ * @file gcal_feed.module
+ *  Provides a custom parser for the Live Feeds module
+ *  to parse Atom XML from a Google Calendar
+ *
+ */
+
+/**
+ *
+ * @returns
+ *   A configuration array for this parser
+ */
+function gcal_feed_config() {
+  $feed_config = array(
+    'feed_type' => 'gcal_feed',
+    'feed_title' => 'Google Calendar Feed',
+    'gcal_id_default' => 'en.usa#holiday@group.v.calendar.google.com',
+  );
+
+  return $feed_config;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter
+ *
+ */
+function gcal_feed_form_feed_node_form_alter(&$form, &$form_state) {
+
+  $config = gcal_feed_config();
+
+  $form['gcal_id'] = array(
+    '#weight' => -1,
+    '#type' => 'textfield',
+    '#title' => t('The ID of the Google Calendar'),
+    '#description' => t('The email address of a calendar. ' .
+      'If you want to access a primary calendar, you can use the account email address. ' .
+      'Otherwise you can find it in Google Calendar on the calendar settings page.'
+    ),
+    '#default_value' => urldecode(variable_get('gcal_id_' . $form['nid']['#value'], $config['gcal_id_default'])),
+    '#states' => array(
+      'required' => array(
+        ':input[name="feed_type[und]"]' => array('value' => "gcal_feed"),
+      ),
+      'visible' => array(
+        ':input[name="feed_type[und]"]' => array('value' => "gcal_feed"),
+      ),
+    ),
+  );
+
+  array_unshift($form['#validate'], 'gcal_feed_node_form_validate');
+  array_unshift($form['#submit'], 'gcal_feed_node_form_submit');
+
+  $form['url']['und'][0]['value']['#required'] = FALSE;
+  $form['url']['#states'] = array(
+    'invisible' => array(
+      ':input[name="feed_type[und]"]' => array('value' => "gcal_feed"),
+    ),
+    'optional' => array(
+      ':input[name="feed_type[und]"]' => array('value' => "gcal_feed"),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_nodeapi
+ *
+ * Save the extra fields for this module.
+ */
+function gcal_feed_node_form_submit($form, &$form_state) {
+  if ($form['#form_id'] == 'feed_node_form' && $form_state['values']['feed_type']['und'][0]['value'] == 'gcal_feed') {
+    variable_set('gcal_id_' . $form_state['values']['nid'], urlencode($form_state['input']['gcal_id']));
+  }
+}
+
+/**
+ * Implementation of hook_node_form_validate
+ *
+ *  Validate the extra fields for this module.
+ */
+function gcal_feed_node_form_validate($form, &$form_state) {
+  if ($form['#form_id'] == 'feed_node_form' && $form_state['values']['feed_type']['und'][0]['value'] == 'gcal_feed') {
+    if (!preg_match("/.*@.*/", $form_state['values']['gcal_id'])) {
+      form_set_error('gcal_id', t('Please enter a valid Google Calendar ID.'));
+    }
+    if (variable_get('gcal_feed_key') == '') {
+      global $base_url;
+      form_set_error('',
+        t('Please set a Google Calendar API Key at <a href="@URL">Live Feeds Google Calendar Feeds Settings</a>.',
+          array('@URL' => url('/admin/config/content/gcal_feed') . '?destination=' . current_path())
+        )
+      );
+    }
+
+    form_set_value($form['url']['und'][0]['value'],
+      'http://www.google.com/calendar/embed?src=' . urlencode($form_state['input']['gcal_id']), $form_state
+    );
+  }
+}
+
+/**
+ * Implementation of hook_admin
+ *
+ * Create an admin form for these nodes
+ *
+ */
+function gcal_feed_admin() {
+  $form = array();
+
+  $form['gcal_feed_key'] = array(
+    '#weight' => 0,
+    '#type' => 'textfield',
+    '#title' => t('Google Calendar API Key'),
+    '#description' => t('Your Google Calendar API key.'),
+    '#default_value' => variable_get('gcal_feed_key', ''),
+    '#prefix' => '<br><h2>A Google Calendar API Key is required before you can see google calendar feeds.</h2>
+    <p>To create one, log into or create your department\'s google account and visit
+    <a href="https://console.developers.google.com">https://console.developers.google.com</a>.
+    <br>From there, you may create a new "project" of any name and generate credentials for Google Calendar API.
+    <br>You should create a Server key with any name and use your site\'s host ip to limit requests.
+    <br>If you don\'t know your host ip, you may proceed without ip restrictions;
+    but be very careful to avoid exposing the API key to the public.</p>',
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implementation of hook_menu
+ *
+ * Add a menu item for the admin page
+ *
+ */
+function gcal_feed_menu() {
+
+  $items = array();
+
+  $items['admin/config/content/gcal_feed'] = array(
+    'title' => 'Live Feeds Google Calendar Feeds Settings',
+    'description' => 'Add your Google Calendar API key.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('gcal_feed_admin'),
+    'access arguments' => array('administer gcal_feed settings'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Parse the RSS and display the feed
+ *
+ * @param $feed_url
+ *  A string containing the URL of the feed
+ * @param $num_items
+ *  An integer containing the number of items to display
+ *
+ * @return
+ *  A string with the formated HTML to display
+ *
+ */
+function gcal_feed_live_feeds_parser($feed_url, $num_items) {
+
+  $cal_link = $feed_url;
+  // Add API key to url
+  $feed_key = variable_get('gcal_feed_key');
+  $feed_id = substr($feed_url, 41);
+  $feed_url = 'https://www.googleapis.com/calendar/v3/calendars/' . $feed_id . '/events?key=' . $feed_key;
+
+  // Get today's date
+  $today_mon = date('m', time());
+  $today_day = date('d', time());
+  $today_year = date('Y', time());
+
+  // Set the start date for items to retrieve
+  // We also grab the user's ip to avoid hitting quota limits on the gcal API
+  $feed_url .= "&timeMin=$today_year-$today_mon-$today_day" . "T00:00:00Z";
+  $feed_url .= "&singleEvents=true";
+  $feed_url .= "&maxResults=$num_items";
+  $feed_url .= "&orderBy=starttime";
+  // will change to = Drupal::request()->getClientIp() in D8
+  $user_ip = ip_address();
+  $feed_url .= "&userIp=$user_ip";
+
+  // Get the feed data
+  $result = drupal_http_request($feed_url);
+
+  // Strip non-print characters from raw feed
+  $file_contents = preg_replace('/[^[:print:]]/', '', $result->data);
+
+  // Now parse it as json
+  $json = json_decode($result->data, TRUE);
+  $items = 0;
+
+  if (!$json['items']) {
+    $content = '<div class="calendar-item gcal-feed">';
+    $content .= '<div class="description">';
+    $content .= '<p class="title"><strong>Invalid Google Calendar ID or API Key.</strong></p>';
+    $content .= '</div></div>';
+
+    return $content;
+  }
+
+  // We have to save each entry to an array
+  // so that we can sort it by date before printing
+  $events = array();
+
+  foreach ($json['items'] as $entry) {
+    if (++$items > $num_items)
+    break;
+
+    // Capture the event link
+    $link = $entry['htmlLink'];
+
+    // If the event link is empty, create one from scratch. Take that, Google!
+    if (empty($link)) {
+      // generate an eid by base64encoding the item id and the organizer email.
+      $eid = base64_encode($entry['id'] . ' ' . $entry['organizer']['email']);
+      $link = 'http://www.google.com/calendar/render?eid=' . $eid;
+    }
+
+    // Get the event data
+    $title = $entry['summary'];
+    $desc = truncate($entry['description']);
+
+    // Get the start time
+    $sdate = isset($entry['start']['dateTime']) ? $entry['start']['dateTime'] : $entry['start']['date'];
+
+    // Parse the date
+    $date = strtotime($sdate);
+    $day = date('d', $date);
+    $mon = date('m', $date);
+    $month = date('M', $date);
+    $year = date('Y', $date);
+    $spell_mon = date('F', $date);
+
+    // Get the location
+    $location = $entry['location'];
+
+    // Build output string
+    $content = '<div class="calendar-item gcal-feed">';
+    $content .= '<a href=\'' . $link . '\'>';
+    $content .= '<div class="date calendar">';
+    $content .= '<div class="month"><abbr title="' . $spell_mon . '">';
+    $content .= $month;
+    $content .= '</abbr></div><div class="day-year"><div class="day">';
+    $content .= $day;
+    $content .= '</div><div class="year">';
+    $content .= $year;
+    $content .= '</div></div></div></a>';
+    $content .= '<div class="description">';
+    $content .= '<p class="title"><strong>' . $title . '</strong></p>';
+    $content .= '<p><strong>' . $location . '</strong></p>';
+    if (!empty($desc)) {
+      $content .= '<p>' . $desc . '<a href="' . $link . '">Read more.</a></p>';
+    }
+    $content .= '</div></div>';
+
+    // Add it to the array
+    $events[] = array('date' => $date, 'content' => $content);
+  }
+
+  // Sort the array using our function below
+  usort($events, 'dsort');
+
+  // Build up the single content string to return
+  $content = '';
+  foreach ($events as $event) {
+    $content .= $event['content'];
+  }
+  $content .= '<a href="' . $cal_link . '">View the Entire Calendar</a>';
+
+  return $content;
+}
+
+/**
+ * Callback function to sort an array
+ * by a 'date' element
+ */
+function dsort($a, $b) {
+  return ($a['date'] < $b['date']) ? -1 : 1;
+}
+
+/**
+ * Utility function to truncate near num_chars to the closest word and append an
+ * ellipsis.
+ */
+function truncate($string, $append = "&hellip;&nbsp;", $num_chars = 140) {
+  $string = trim($string, " \t\n\r\0\x0B");
+
+  if (strlen($string) > $num_chars) {
+    $string = wordwrap($string, $num_chars);
+    $string = explode("\n", $string, 2);
+    $string = rtrim($string[0], ",") . $append;
+  }
+
+  return $string;
+}
+
