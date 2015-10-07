@@ -17,6 +17,7 @@ function gcal_feed_config() {
     'feed_type' => 'gcal_feed',
     'feed_title' => 'Google Calendar Feed',
     'gcal_id_default' => 'en.usa#holiday@group.v.calendar.google.com',
+    'feed_url' => '',
   );
 
   return $feed_config;
