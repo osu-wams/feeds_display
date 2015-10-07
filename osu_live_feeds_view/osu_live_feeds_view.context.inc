@@ -20,6 +20,7 @@ function osu_live_feeds_view_context_default_contexts() {
     'node' => array(
       'values' => array(
         'book' => 'book',
+        'page' => 'page',
       ),
       'options' => array(
         'node_form' => '1',

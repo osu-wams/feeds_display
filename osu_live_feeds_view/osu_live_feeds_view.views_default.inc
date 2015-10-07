@@ -13,7 +13,7 @@ function osu_live_feeds_view_views_default_views() {
   $view = new view();
   $view->name = 'osu_live_feeds';
   $view->description = 'A contextual view to display RSS feed nodes.';
-  $view->tag = 'Feeds';
+  $view->tag = 'Live Feeds';
   $view->base_table = 'node';
   $view->human_name = 'OSU Live Feeds Contextual View';
   $view->core = 7;
