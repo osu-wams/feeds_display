@@ -40,6 +40,7 @@
 
 .live-feeds-block .calendar-item.gcal-feed abbr[title] { /* for accessibile, dates */
   border-bottom: none;
+  text-decoration: none;
   cursor: auto;
 }
 
