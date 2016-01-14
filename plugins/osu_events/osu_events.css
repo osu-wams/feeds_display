@@ -40,6 +40,7 @@
 
 .live-feeds-block abbr[title] { /* for accessibile, dates */
   border-bottom: none;
+  text-decoration: none;
   cursor: default;
 }
 
