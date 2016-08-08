@@ -1,478 +1,53 @@
 <?php
+
 /**
  * @file
- * live_feeds.module
- *
- * Created:    4/27/2011
- * Author(s):  Paul Lieberman - Central Web Services - Oregon State University
- *             Richard Middaugh - Central Web Services - Oregon State University
- *             Roberto Nunez  - Central Web Services -  Oregon State University
- *
- * Purpose:   A Drupal module to process custom feeds based on installed parsers
- *
- * Modified:
- *
- *  2012-06-21 - PL - Add ability to add the blocks to the region from the form.
- *                    No longer necessary to got to the blocks admin page.
- *  2014-05-19 - RM - Updated module to use field API
- *
- *  2015-08-11 - RN - Add contextual view and update nodes and templates to allow
- *                    standardized views blocks to display group-specific feeds
+ * Contains live_feeds.module..
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
+
 /**
- * Implements hook_views_api().
- *
+ * Implements hook_help().
  */
-function live_feeds_views_api() {
+function live_feeds_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the osu_feeds module.
+    case 'help.page.live_feeds':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Feeds Parser for the Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function live_feeds_theme($existing, $type, $theme, $path) {
   return array(
-    'api' => 3,
-  );
-}
-
-/**
- * Define feed_type field handler
- */
-class live_feeds_type_handler_field extends views_handler_field {
-  function get_value($values, $field = NULL) {
-
-    // Retrieve field names
-    $alias = isset($field) ? $this->aliases[$field] : $this->field_alias;
-
-    if (isset($values->{$alias})){
-      // $values->{$alias} contains the field value which is our feed type
-      return $values->{$alias};
-    }
-    else{
-      return NULL;
-    }
-  }
-}
-
-/**
- * Define feed_type_in_operator filter
- */
-class live_feeds_type_in_operator extends views_handler_filter_in_operator {
-  // overwrite the get_value_options function.
-  function get_value_options() {
-
-    // Check if we've already set options recently
-    if (isset($this->value_options)) {
-      return;
-    }
-
-    // Get the list of available parser plugins
-    $parsers = live_feeds_get_available_parsers();
-    if (!$parsers) {
-      drupal_set_message(t('No available parsers'));
-    }
-    $options = array();
-    foreach ($parsers as $parser => $info) {
-      $options[$parser] = $info['name'];
-    }
-
-    // Copy types to options
-    $this->value_options = $options;
-  }
-
-  function query() {
-    // Doublecheck and retrieve field names
-    $this->ensure_my_table();
-    $field = "$this->table_alias.$this->real_field";
-
-    // Add conditions to view query
-    $this->query->add_where(
-      $this->options['group'],
-      db_or()
-        ->condition($field, $this->options['value'], 'in')
-    );
-  }
-
-}
-
-/**
- * Implements hook_views_data_alter().
- *
- */
-function live_feeds_views_data_alter(&$data) {
-  $data['field_data_feed_type']['table']['group'] = t('Feed');
-
-  $data['field_data_feed_type']['feed_type_value'] = array(
-    'field' => array(
-      'title' => t('Feed Type'),
-      'help' => t('This is the feed type of the feed node.'),
-      'handler' => 'live_feeds_type_handler_field',
-    ),
-    'filter' => array(
-      'title' => t('Feed Type'),
-      'help' => t('Filter by feed type.'),
-      'handler' => 'live_feeds_type_in_operator',
-    ),
-  );
-}
-
-/**
- * Implements hook_node_info()
- */
-function live_feeds_node_info() {
-  return array(
-    'feed'        => array(
-      'name'        => t('Feed'),
-      'module'      => 'live_feeds',
-      'base'        => 'live_feeds',
-      'description' => t("A Feed is a summary of items or events from another source."),
-      'help'        => 'Create a feed.',
-      'title_label' => 'Feed',
-      'has_body'    => FALSE,
-    )
-  );
-}
-
-/**
- * Impelements hook_help()
- */
-function live_feeds_help($path, $arg){
-  switch($path) {
-    case 'node/add#feed':
-      return t('A Feed. Use this page to configure a feed.');
-    case 'admin/help#feed':
-      return t('<p>A module for creating and viewing feeds.</p>');
-  }
-}
-
-
-/**
- * Implements hook_perm()
- */
-function live_feeds_permission(){
-  return array(
-    'create feed' => array(
-      'title' => t('Create a new feed.'),
-    ),
-    'edit feed' => array(
-      'title' => t('Edit an existing feed'),
-    )
-  );
-}
-
-/**
- * Implementation of hook_node_view()
- *
- */
-function live_feeds_node_view($node, $view_mode, $langcode) {
-  if ($view_mode == 'full' && $node->type == 'feed') {
-    $content = live_feeds_load_feed($node->feed_type['und'][0]['value'],
-       $node->url['und'][0]['value'], $node->num_items['und'][0]['value']);
-    $node->title = array();
-    $node->content['feed_content'] = array(
-      '#theme' => 'live_feeds_node',
-      '#content' => $content,
-      '#link' => $node->url['und'][0]['value'],
-      '#weight' => -10,
-    );
-  }
-  if ($view_mode == 'contextual_view' && $node->type == 'feed') {
-    $content = live_feeds_load_feed($node->feed_type['und'][0]['value'],
-       $node->url['und'][0]['value'], $node->num_items['und'][0]['value']);
-    $node->title = array();
-    $node->content['feed_content'] = array(
-      '#subject' => $node->feed_title['und'][0]['value'],
-      '#theme' => 'live_feeds_view',
-      '#content' => $content,
-      '#link' => $node->url['und'][0]['value'],
-    );
-  }
-
-}
-
-/**
- *  Implementation of hook_entity_info_alter()
- */
-function live_feeds_entity_info_alter(&$entity_info) {
-  $entity_info['node']['view modes']['contextual_view'] = array(
-    'label' => t('Contextual View'),
-    'custom settings' => TRUE,
-  );
-}
-
-/**
- * Implementation of hook_form()
- *
- */
-function live_feeds_form_feed_node_form_alter(&$form, &$form_state) {
-  // Get the list of available parser plugins
-  $parsers = live_feeds_get_available_parsers();
-  if (!$parsers) {
-    drupal_set_message(t('No available parsers'));
-  }
-  $options = array('select' => 'Select feed type');
-  foreach ($parsers as $parser => $info) {
-    $options[$parser] = $info['name'];
-  }
-
-  // Get the list of available theme regions
-  $default_theme = variable_get('theme_default', 'bartik');
-  $themes = list_themes();
-  $regions = $themes[$default_theme]->info['regions'];
-  array_unshift($regions, array('none' => 'None'));
-
-  // Set default and size for "Number of Items" field
-  $form['num_items']['und'][0]['value']['#default_value'] = 5;
-  $form['num_items']['und'][0]['value']['#size'] = 3;
-
-  // The feed type - based on available parsers
-  $form['feed_type']['und']['#options'] = $options;
-  if (isset($form_state['node']->feed_type['und'][0]['value'])) {
-    $form['feed_type']['und']['#default_value'] = $form_state['node']->feed_type['und'][0]['value'];
-  }
-
-  // Add blocks to region
-  $form['enable_block'] = array(
-    '#type'          => 'select',
-    '#title'         => t('Add block to a theme region'),
-    '#description'   => t('This will enable your feed and display it on the front page.'),
-    '#options'       => $regions,
-    '#default_value' => 'none',
-  );
-  $form['#validate'][] = 'live_feeds_feed_node_form_validate';
-  $form['#submit'][] = 'live_feeds_feed_node_form_submit';
-
-  return $form;
-}
-
-/**
- * Validation callback for feed_node_form.
- */
-function live_feeds_feed_node_form_validate($form, &$form_state) {
-  // Set node title
-  $form_state['values']['title'] = $form_state['values']['feed_title']['und'][0]['value'];
-
-  if ($form_state['values']['feed_type']['und'][0]['value'] == 'select') {
-    form_set_error('feed_type', t('Please select a feed type.'));
-  }
-  if (!preg_match("/^http/", $form_state['values']['url']['und'][0]['value'])) {
-    form_set_error('url', t('Please provide a valid feed URL.'));
-  }
-}
-
-/**
- * Submit callback for feed_node_form.
- */
-function live_feeds_feed_node_form_submit($form, $form_state) {
-  // Handled for us by the field API
-}
-
-/**
- * Implements hook_node_insert().
- */
-function live_feeds_node_insert($node) {
-  // We do this in hook_node_insert() because it has the entries in the block table,
-  // whereas it is not there yet in a form submit callback.
-  if ($node->type != 'feed') return;
-
-  // Flush cache to get the feeds added to the block table
-  drupal_flush_all_caches();
-
-  // Check to see if we should enable the block
-  if (isset($node->enable_block) && $node->enable_block != 'none') {
-    // Get the default theme so we nock which block to add
-    $theme_default = variable_get('theme_default', 'bartik');
-    $region = $node->enable_block;
-    // Update the blocks to set the status and regions
-    db_update('block')
-      ->fields(array('region' => $region, 'status' => 1))
-      ->condition('theme', $theme_default)
-      ->condition('title', $node->feed_title['und'][0]['value'])
-      ->execute();
-
-    drupal_set_message('Your feed ' . $node->feed_title['und'][0]['value'] . ' is now enabled.');
-  }
-  else {
-    drupal_set_message('Your feed has been created. You can now go to the Blocks page and add the feed to a region in your theme.');
-  }
-}
-
-/**
- * Implements hook_delete()
- */
-function live_feeds_node_delete($node) {
-  if ($node->type == 'feed') {
-    // Remove the record from the block table
-    db_delete('block')
-      ->condition('module', 'live_feeds')
-      ->condition('delta', $node->nid)
-      ->execute();
-  }
-}
-
-/**
- * Implementation of hook_block().
- *
- * When Drupal is instaniated this hook will read the database and
- * create the blocks for each of our feeds.
- */
-function live_feeds_block_info() {
-
-  $blocks = array();
-
-  // Read our feeds from the db
-  // and create the block for each one
-  $result = live_feeds_get_feeds();
-  foreach ($result as $feed) {
-    $blocks[$feed->nid] = array(
-      'info'        => t($feed->feed_title['und'][0]['value']),
-      'title'       => t($feed->feed_title['und'][0]['value']),
-      'visibility'  => 1,
-      'pages'       => '<front>',
-    );
-  }
-  return $blocks;
-}
-
-/**
- * Implements hook_block_view().
- */
-function live_feeds_block_view($delta = NULL) {
-
-  // Read our feeds from the db
-  $result = live_feeds_get_feeds($delta);
-  $block = array();
-  foreach ($result as $feed) {
-    $feed_title = $feed->feed_title['und']['0']['value'];
-    $feed_type = $feed->feed_type['und']['0']['value'];
-    $feed_url = $feed->url['und']['0']['value'];
-    $num_items = $feed->num_items['und']['0']['value'];
-    $content = live_feeds_load_feed($feed_type, $feed_url, $num_items);
-    $block = array(
-      'subject'   =>  t($feed_title),
-      'content'   =>  array(
-        '#theme' => 'live_feeds_block',
-        '#content' => $content,
-        '#link' => $feed_url,
-        '#subject' => $feed_title,
+    'live_feeds_events' => array(
+      'variables' => array(
+        'live_feeds_event_link' => NULL,
+        'live_feeds_cal_data' => NULL,
+        'attributes' => array(
+          'class' => array(
+            'live-feeds-block',
+          ),
+        ),
       ),
-      'link'      =>  $feed_url,
-    );
-  }
-  return $block;
-}
-
-/**
- * Calls the correct parser for this feed type
- *
- * @param $feed_type
- *  A string containing the feed type
- * @param $feed_url
- *  A string contianing the URL
- * @param $num_items
- *  An integer containing the number of items to display
- *
- */
-function live_feeds_load_feed($feed_type, $feed_url, $num_items) {
-
-  $parsers = live_feeds_get_available_parsers();
-  if ($parsers[$feed_type]) {
-    $func = $feed_type . '_live_feeds_parser';
-    return $func($feed_url, $num_items);
-  }
-}
-
-/**
- * Implementation of hook_theme
- *
- * Register our template
- *
- */
-function live_feeds_theme() {
-  $theme['live_feeds_block'] = array(
-      'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
-      'template'  => 'live-feeds-block',
-      'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
+    ),
+    'live_feeds_news' => array(
+      'variables' => array(
+        'live_feeds_news_data' => NULL,
+        'attributes' => array(
+          'class' => array(
+            'live-feeds-block',
+          ),
+        ),
+      ),
+    ),
   );
-  $theme['live_feeds_view'] = array(
-      'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
-      'template'  => 'live-feeds-view',
-      'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
-  );
-  $theme['live_feeds_node'] = array(
-      'variables' => array('content' => NULL, 'link' => NULL, 'subject' => NULL),
-      'template'  => 'live-feeds-node',
-      'path'      => drupal_get_path('module', 'live_feeds') . '/templates',
-  );
-  return $theme;
 }
-
-/**
- * Return a list of available parsers.
- *
- * @return
- *   An array of the enabled feed parser modules. The module name is the key
- *   and the value is a sub-array with the module's 'name' and 'description'.
- */
-function live_feeds_get_available_parsers() {
-  static $parsers;
-
-  if (!isset($parsers)) {
-    $parsers = array();
-    foreach (module_implements('live_feeds_parser', TRUE) as $module) {
-      $info = drupal_parse_info_file(drupal_get_path('module', $module) .'/'. $module .'.info');
-      $func = $module . '_config';
-      $config = $func();
-
-      $parsers[$module] = array(
-        'name'        => $info['name'],
-        'description' => $info['description'],
-        'title'       => $config['feed_title'],
-        'url'         => $config['feed_url'],
-      );
-    }
-  }
-
-  drupal_add_js(array('live_feeds' => $parsers), 'setting');
-
-  // Add CSS for each parser
-  foreach ($parsers as $module => $values) {
-    drupal_add_css( drupal_get_path('module', $module) . '/' . $module . '.css');
-  }
-
-  return $parsers;
-}
-
-/*
- * Function to truncate a string to given number of words.
- * Can be used by parser modules
- */
-function live_feeds_truncate_words($string, $words){
-  $string = explode(' ', $string);
-  if (count($string) > $words) {
-    return implode(' ', array_slice($string, 0, $words));
-  }
-  return implode(' ', $string);
-}
-
-/**
- * Gets all live feed nodes.
- *
- * @param $nid integer Loads specific node id if set
- * @param $return_single_entry boolean If TRUE, returns an entry by itself if it's the only feed loaded
- * @return array of node objects, stdClass if single result, NULL if no results
- */
-function live_feeds_get_feeds($nid = NULL, $return_single_entry = FALSE) {
-  $feeds = array();
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'node')->entityCondition('bundle', 'feed');
-  if ($nid) {
-    $query->propertyCondition('nid', $nid);
-  }
-
-  $result = $query->execute();
-  if (!isset($result['node'])) return array();
-  foreach ($result['node'] as $nid => $node_data) {
-    $feeds[] = node_load($nid);
-  }
-
-  if (empty($feeds)) return NULL;
-  if ($return_single_entry && count($feeds) === 1) return array_pop($feeds);
-  return $feeds;
-}
-

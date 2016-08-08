@@ -1,0 +1,7 @@
+name: Live Feeds
+type: module
+description: Feeds Parser for the Module
+core: 8.x
+package: Feeds
+dependencies:
+  - block

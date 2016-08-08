@@ -1,6 +1,6 @@
 /**
- * @file osu_events.css
- *  Provide style for the OSU Events plugin for the Feeds Display module
+ * @file events.css
+ *  Provide style for the Events plugin for the Live Feeds module.
  */
 
 .live-feeds-block .calendar-item {
@@ -21,6 +21,7 @@
   font-weight: bold;
   margin-top: .2em;
 }
+
 .live-feeds-block .calendar-item .date.classic .day {
   color: #c34500;
   font-size: 34px;
@@ -38,10 +39,10 @@
   margin-top: -4px;
 }
 
-.live-feeds-block .calendar-item.gcal-feed abbr[title] { /* for accessibile, dates */
+.live-feeds-block abbr[title] { /* for accessibile, dates */
   border-bottom: none;
   text-decoration: none;
-  cursor: auto;
+  cursor: default;
 }
 
 .live-feeds-block .calendar-item .classic + .description {
@@ -85,8 +86,10 @@
   margin-left: 80px;
 }
 
-.live-feeds-block .calendar-item .title a {
+.live-feeds-block .calendar-item h3 a {
   text-decoration: none;
 }
 
-
+.live-feeds-block .calendar-item h3 {
+  font-size: 1rem;
+}
