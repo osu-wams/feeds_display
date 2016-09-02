@@ -196,11 +196,9 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       // Display teaser if there is one, else truncate body.
       if (isset($teaser)) {
         $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $teaser;
-        $build['#live_feeds_news_data']['#' . $items]['#news_story_read_more_link'] = Link::fromTextAndUrl($this->t('Read full story.'), $url);
       }
       else {
         $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), 20);
-        $build['#live_feeds_news_data']['#' . $items]['#news_story_read_more_link'] = Link::fromTextAndUrl($this->t('Read full story.'), $url);
       }
     }
     $build['#theme'] = 'live_feeds_news';
