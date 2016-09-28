@@ -7,6 +7,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -163,75 +165,79 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
     // Parse the feed_url to determine the calendar link.
     preg_match('/\/(\w+-*\w*-*\w*)\/rss20.xml/', $feed_url, $match);
     $cal_link = 'http://calendar.oregonstate.edu/' . $match[1];
+    if ($xml !== FALSE) {
+      foreach ($xml->channel->item as $event) {
+        if (++$items > (int) $this->configuration['live_feeds_event_total']) {
+          break;
+        }
 
-    foreach ($xml->channel->item as $event) {
-      if (++$items > (int) $this->configuration['live_feeds_event_total']) {
-        break;
+        // Get the event data.
+        $title = $event->title;
+        $link = $event->link;
+        $desc = $event->description;
+
+        // Remove the date div from the description.
+        $html->loadHTMl((string) $desc);
+        $date = $html->getElementsByTagName('div')->item(0);
+        $div = $date->parentNode;
+        $div->removeChild($date);
+
+        $desc = utf8_decode($html->saveXML($div));
+
+        // Strip html except for links.
+        $desc = strip_tags($desc, '<a>');
+
+        // Start and end dates use the osu namespace.
+        $nodes = $event->children('edu.oregonstate.calendar', TRUE);
+        $start = $nodes->dtstart;
+        $end = $nodes->dtend;
+
+        // Parse the date.
+        $date = strtotime($start);
+        $day = date('d', $date);
+        $mon = date('m', $date);
+        $month = date('M', $date);
+        $year = date('Y', $date);
+        $spell_mon = date('F', $date);
+
+        // Get today's date.
+        $today_mon = date('m', time());
+        $today_day = date('d', time());
+        $today_year = date('Y', time());
+
+        // Skip if earlier than today.
+        if (
+          ($year < $today_year) ||
+          ($year == $today_year && $mon < $today_mon) ||
+          ($year == $today_year && $mon == $today_mon && $day < $today_day)
+        ) {
+          $items--;
+          continue;
+        }
+        // Truncate the body and fix all unclosed tags.
+        $body = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($desc), (int) $this->configuration['live_feeds_event_word_limit']);
+        // $body = trim($desc);
+        $tidy = new \tidy();
+        $body = $tidy->repairString($body, array('show-body-only' => 1));
+        // Build output string.
+        $build['#live_feeds_cal_data']['#' . $items]['#day']['#markup'] = $day;
+        $build['#live_feeds_cal_data']['#' . $items]['#month']['#markup'] = $month;
+        $build['#live_feeds_cal_data']['#' . $items]['#month_spell']['#markup'] = $spell_mon;
+        $build['#live_feeds_cal_data']['#' . $items]['#year']['#markup'] = $year;
+        $build['#live_feeds_cal_data']['#' . $items]['#description']['title']['#markup'] = '<a href="' . $link . '">' . $title . '</a >';
+        $build['#live_feeds_cal_data']['#' . $items]['#description']['body']['#markup'] = $body;
       }
-
-      // Get the event data.
-      $title = $event->title;
-      $link = $event->link;
-      $desc = $event->description;
-
-      // Remove the date div from the description.
-      $html->loadHTMl((string) $desc);
-      $date = $html->getElementsByTagName('div')->item(0);
-      $div = $date->parentNode;
-      $div->removeChild($date);
-
-      $desc = utf8_decode($html->saveXML($div));
-
-      // Strip html except for links.
-      $desc = strip_tags($desc, '<a>');
-
-      // Start and end dates use the osu namespace.
-      $nodes = $event->children('edu.oregonstate.calendar', TRUE);
-      $start = $nodes->dtstart;
-      $end = $nodes->dtend;
-
-      // Parse the date.
-      $date = strtotime($start);
-      $day = date('d', $date);
-      $mon = date('m', $date);
-      $month = date('M', $date);
-      $year = date('Y', $date);
-      $spell_mon = date('F', $date);
-
-      // Get today's date.
-      $today_mon = date('m', time());
-      $today_day = date('d', time());
-      $today_year = date('Y', time());
-
-      // Skip if earlier than today.
-      if (
-        ($year < $today_year) ||
-        ($year == $today_year && $mon < $today_mon) ||
-        ($year == $today_year && $mon == $today_mon && $day < $today_day)
-      ) {
-        $items--;
-        continue;
-      }
-      // Truncate the body and fix all unclosed tags.
-      $body = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($desc), (int) $this->configuration['live_feeds_event_word_limit']);
-      // $body = trim($desc);
-      $tidy = new \tidy();
-      $body = $tidy->repairString($body, array('show-body-only' => 1));
-      // Build output string.
-      $build['#live_feeds_cal_data']['#' . $items]['#day']['#markup'] = $day;
-      $build['#live_feeds_cal_data']['#' . $items]['#month']['#markup'] = $month;
-      $build['#live_feeds_cal_data']['#' . $items]['#month_spell']['#markup'] = $spell_mon;
-      $build['#live_feeds_cal_data']['#' . $items]['#year']['#markup'] = $year;
-      $build['#live_feeds_cal_data']['#' . $items]['#description']['title']['#markup'] = '<a href="' . $link . '">' . $title . '</a >';
-      $build['#live_feeds_cal_data']['#' . $items]['#description']['body']['#markup'] = $body;
+      $build['#live_feeds_event_link']['#markup'] = '<a href="' . $cal_link . '">View the Entire Calendar</a>';
+      $build['#theme'] = 'live_feeds_events';
+      $build['#attached'] = array(
+        'library' => array(
+          'live_feeds/live_feeds_events',
+        ),
+      );
     }
-    $build['#live_feeds_event_link']['#markup'] = '<a href="' . $cal_link . '">View the Entire Calendar</a>';
-    $build['#theme'] = 'live_feeds_events';
-    $build['#attached'] = array(
-      'library' => array(
-        'live_feeds/live_feeds_events',
-      ),
-    );
+    else {
+      $build['#markup'] .= "There was an error loading the Event Calendar.";
+    }
     return $build;
   }
 
@@ -245,11 +251,17 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    *   XML of the string data.
    */
   private function parseFeed($feed) {
-    $request = $this->httpClient->get($feed);
-    $response = $request->getBody();
-    $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
-    $xml = simplexml_load_string($file_contents);
-    return $xml;
+    // Try to request the feed.
+    try {
+      $request = $this->httpClient->request('GET', $feed);
+      $response = $request->getBody();
+      $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
+      $xml = simplexml_load_string($file_contents);
+      return $xml;
+    } catch (RequestException $e) {
+      // Log the failed request to watchdog.
+      watchdog_exception('live_feeds', $e);
+    }
+    return FALSE;
   }
-
 }

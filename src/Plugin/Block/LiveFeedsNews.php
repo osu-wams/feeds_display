@@ -9,6 +9,8 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -132,83 +134,105 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
   public function build() {
     $build = [];
 
-    // Capture feed.
-    $result = $this->httpClient->get($this->configuration['live_feeds_news_link']);
-
-    // Strip non-print characters from raw feed.
-    $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->getBody());
-
     $items = 0;
     $thumb = '';
     $date_text = '';
     $body = '';
     $build['#markup'] = '';
-    $xml = simplexml_load_string($file_contents);
-    // Need this to parse the description.
-    $html = new \DOMDocument();
+    //$xml = simplexml_load_string($file_contents);
+    $xml = $this->parseFeed($this->configuration['live_feeds_news_link']);
+    if ($xml !== FALSE) {
+      // Need this to parse the description.
+      $html = new \DOMDocument();
 
-    foreach ($xml->channel->item as $story) {
-      if (++$items > (int) $this->configuration['live_feeds_items_total']) {
-        break;
-      }
-      // Don't reuse content from previous iteration.
-      unset($teaser);
-
-      // Parse the description into HTML divs and look for specific classes.
-      $html->loadHTML($story->description);
-      foreach ($html->getElementsByTagName('div') as $div) {
-        $class = $div->getAttribute('class');
-
-        // Get the Date.
-        if (strpos($class, 'field-field-date')) {
-          $date_text = $div->getElementsByTagName('span')->item(0)->nodeValue;
+      foreach ($xml->channel->item as $story) {
+        if (++$items > (int) $this->configuration['live_feeds_items_total']) {
+          break;
         }
+        // Don't reuse content from previous iteration.
+        unset($teaser);
 
-        // Get the thumbnail URL.
-        elseif (strpos($class, 'field-field-thumbnail')) {
-          $img = $div->getElementsByTagName('img')->item(0);
-          // We want to preserve all of the html for the img tag.
-          $thumb = $html->saveXML($img);
-        }
+        // Parse the description into HTML divs and look for specific classes.
+        $html->loadHTML($story->description);
+        foreach ($html->getElementsByTagName('div') as $div) {
+          $class = $div->getAttribute('class');
 
-        // Get the teaser.
-        elseif (strpos($class, 'field-field-teaser')) {
-          $teaser = utf8_decode($div->getElementsByTagName('p')
-            ->item(0)->nodeValue);
-        }
+          // Get the Date.
+          if (strpos($class, 'field-field-date')) {
+            $date_text = $div->getElementsByTagName('span')->item(0)->nodeValue;
+          }
 
-        // Get the body.
-        elseif (strpos($class, 'field-field-body')) {
-          if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
-            $body = mb_convert_encoding($div->getElementsByTagName('div')
-              ->item(2)->nodeValue, "ISO_8859-1", "UTF-8");
+          // Get the thumbnail URL.
+          elseif (strpos($class, 'field-field-thumbnail')) {
+            $img = $div->getElementsByTagName('img')->item(0);
+            // We want to preserve all of the html for the img tag.
+            $thumb = $html->saveXML($img);
+          }
+
+          // Get the teaser.
+          elseif (strpos($class, 'field-field-teaser')) {
+            $teaser = utf8_decode($div->getElementsByTagName('p')
+              ->item(0)->nodeValue);
+          }
+
+          // Get the body.
+          elseif (strpos($class, 'field-field-body')) {
+            if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
+              $body = mb_convert_encoding($div->getElementsByTagName('div')
+                ->item(2)->nodeValue, "ISO_8859-1", "UTF-8");
+            }
           }
         }
-      }
-      /*
-       * Pass the data to Twig.
-       */
-      $build['#live_feeds_news_data']['#' . $items]['#news_thumb']['#markup'] = $thumb;
-      $url = Url::fromUri($story->link);
-      $build['#live_feeds_news_data']['#' . $items]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
-      $build['#live_feeds_news_data']['#' . $items]['#news_date'] = date('M j, Y', strtotime($date_text));
+        /*
+         * Pass the data to Twig.
+         */
+        $build['#live_feeds_news_data']['#' . $items]['#news_thumb']['#markup'] = $thumb;
+        $url = Url::fromUri($story->link);
+        $build['#live_feeds_news_data']['#' . $items]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
+        $build['#live_feeds_news_data']['#' . $items]['#news_date'] = date('M j, Y', strtotime($date_text));
 
-      // Display teaser if there is one, else truncate body.
-      if (isset($teaser)) {
-        $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $teaser;
+        // Display teaser if there is one, else truncate body.
+        if (isset($teaser)) {
+          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $teaser;
+        }
+        else {
+          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), 20);
+        }
       }
-      else {
-        $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), 20);
-      }
+      $build['#theme'] = 'live_feeds_news';
+      $build['#attached'] = array(
+        'library' => array(
+          'live_feeds/live_feeds_news',
+        ),
+      );
     }
-    $build['#theme'] = 'live_feeds_news';
-    $build['#attached'] = array(
-      'library' => array(
-        'live_feeds/live_feeds_news',
-      ),
-    );
+    else {
+      $build['#markup'] .= "There was an error loading the feed.";
+    }
     return $build;
-
   }
 
+  /**
+   * Get the feed data from outside the site.
+   *
+   * @param string $feed
+   *   URL of the Feeds.
+   *
+   * @return mixed
+   *   XML of the string data.
+   */
+  private function parseFeed($feed) {
+    // Try to request the feed.
+    try {
+      $request = $this->httpClient->request('GET', $feed);
+      $response = $request->getBody();
+      $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
+      $xml = simplexml_load_string($file_contents);
+      return $xml;
+    } catch (RequestException $e) {
+      // Log the failed request to watchdog.
+      watchdog_exception('live_feeds', $e);
+    }
+    return FALSE;
+  }
 }
