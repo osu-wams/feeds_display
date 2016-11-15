@@ -91,7 +91,7 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     if (++$items > $num_items) break;
 
     // Get the event data
-    $title = $event->title.' año'; //$event->title;
+    $title = $event->title;
     $link  = $event->link;
     $desc  = $event->description;
 
@@ -105,7 +105,7 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
      //$desc = $html->saveXML($div);
 
     // Strip html except for links
-    $desc = strip_tags($desc, '<a><p>');
+    $desc = strip_tags($desc, '<a>');
 
     // Start and end dates use the osu namespace
     $nodes = $event->children('edu.oregonstate.calendar', true);
@@ -139,7 +139,7 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
       $body = live_feeds_truncate_words(trim($desc), 30);
       //$body = $desc;
       // $tidy = new tidy();
-      //$body = $tidy->repairString($body, array('show-body-only' => 1));
+      //$body = $tidy->repairString($body,m  array('show-body-only' => 1));
 
     // Build output string
     $content .= '<div class="calendar-item">';
