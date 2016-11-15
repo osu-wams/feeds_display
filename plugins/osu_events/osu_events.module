@@ -72,7 +72,7 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
   $result = drupal_http_request($feed_url);
 
   // Strip non-print characters from raw feed
-  // $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
+   $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
     $file_contents = $result->data;
 
   $xml = simplexml_load_string($file_contents);
@@ -95,17 +95,22 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     $link  = $event->link;
     $desc  = $event->description;
 
-    // Remove the date div from the description
-    $html->loadHTMl( (string) $desc);
+
+    // preserve utf8 characters after embedding as html entities
+    $html->loadHTML(mb_convert_encoding((string) $desc, 'HTML-ENTITIES', 'UTF-8'));
+
+    // Remove the date information from the description
     $date = $html->getElementsByTagName('div')->item(0);
     $div = $date->parentNode;
     $div->removeChild($date);
 
-    //$desc = utf8_decode( $html->saveXML($div));
-     //$desc = $html->saveXML($div);
+
+    $desc = $html->saveXML($div->documentElement);
+
 
     // Strip html except for links
     $desc = strip_tags($desc, '<a>');
+
 
     // Start and end dates use the osu namespace
     $nodes = $event->children('edu.oregonstate.calendar', true);
@@ -135,11 +140,10 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
       continue;
     }
 
-    // Trucate the body and fix all unclosed tags
+      // Trucate the body and fix all unclosed tags
       $body = live_feeds_truncate_words(trim($desc), 30);
-      //$body = $desc;
-      // $tidy = new tidy();
-      //$body = $tidy->repairString($body,m  array('show-body-only' => 1));
+      $tidy = new tidy();
+      $body = $tidy->repairString($body, array('show-body-only' => 1), 'utf8');
 
     // Build output string
     $content .= '<div class="calendar-item">';
