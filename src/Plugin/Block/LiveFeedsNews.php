@@ -209,6 +209,8 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     else {
       $build['#markup'] .= "There was an error loading the feed.";
     }
+    // Setting max age to 5 minutes. This is needed or it caches indefinitely.
+    $build['#cache']['max-age'] = 300;
     return $build;
   }
 

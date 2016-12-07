@@ -238,6 +238,8 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
     else {
       $build['#markup'] .= "There was an error loading the Event Calendar.";
     }
+    // Setting max age to 5 minutes. This is needed or it caches indefinitely.
+    $build['#cache']['max-age'] = 300;
     return $build;
   }
 
