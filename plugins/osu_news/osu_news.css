@@ -12,11 +12,14 @@
 }
 
 .live-feeds-block .news-item  h3.title {
-  color: #000000
+  color: #000;
   display: inline;
-  font-size: 0.93em;
   margin: 0;
   padding: 0;
+}
+
+.live-feeds-block .news-item  h3.title a {
+  text-decoration: none;
 }
 
 .live-feeds-block .news-item img {
@@ -26,13 +29,11 @@
 }
 
 
-.live-feeds-block .news-item .date
-{
+.live-feeds-block .news-item .date {
 	color: #565656;
 	display: inline;
 	font-size: 0.93em;
 	font-style: italic;
-	text-wrap: ;
 	white-space: nowrap;
 }
 
