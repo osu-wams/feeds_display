@@ -76,10 +76,10 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function defaultConfiguration() {
     return [
-      'live_feeds_news_link' => $this->t(''),
-      'live_feeds_items_total' => $this->t('5'),
-      'live_feeds_news_word_limit' => $this->t('30'),
-    ] + parent::defaultConfiguration();
+        'live_feeds_news_link' => $this->t(''),
+        'live_feeds_items_total' => $this->t('5'),
+        'live_feeds_news_word_limit' => $this->t('30'),
+      ] + parent::defaultConfiguration();
 
   }
 
@@ -166,7 +166,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
           elseif (strpos($class, 'field-field-thumbnail')) {
             $img = $div->getElementsByTagName('img')->item(0);
             // We want to preserve all of the html for the img tag.
-            $thumb = $html->saveXML($img);
+            $thumb = str_replace('http://', '//', $html->saveXML($img));
           }
 
           // Get the teaser.
