@@ -59,10 +59,10 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
     foreach ($html->getElementsByTagName('div') as $div) {
       $class = $div->getAttribute('class');
 
-      if (strpos($class, 'field-name-field-custom-thumbnail')) { // Get the thumbnail URL
+      if (strpos($class, 'field-name-field-custom-thumbnail') || strpos($class, 'field-field-thumbnail')) { // Get the thumbnail URL
         $img   = $div->getElementsByTagName('img')->item(0);
 	$thumb = $html->saveXML($img); // We want to preserve all of the html for the img tag
-      } elseif (strpos($class, 'field-name-field-teaser')) { // Get the teaser
+      } elseif (strpos($class, 'field-name-field-teaser') || strpos($class, 'field-field-teaser')) { // Get the teaser
         $teaser = utf8_decode($div->getElementsByTagName('p')->item(0)->nodeValue);
       } elseif (strpos($class, 'field-field-body')) { // Get the body
         if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
