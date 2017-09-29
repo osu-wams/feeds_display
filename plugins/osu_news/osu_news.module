@@ -53,33 +53,20 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
 
     unset($teaser); // Don't reuse content from previous iteration
 
-    // Parse the description into HTML divs
-    // and look for specific classes
+    // Parse the description into HTML divs and look for specific classes
     $html->loadHTML($story->description);
-    foreach ($html->getElementsByTagName('div') as $div) {
-      $class = $div->getAttribute('class');
-
-      if (strpos($class, 'field-name-field-custom-thumbnail') || strpos($class, 'field-field-thumbnail')) { // Get the thumbnail URL
-        $img   = $div->getElementsByTagName('img')->item(0);
-	$thumb = $html->saveXML($img); // We want to preserve all of the html for the img tag
-      } elseif (strpos($class, 'field-name-field-teaser') || strpos($class, 'field-field-teaser')) { // Get the teaser
-        $teaser = utf8_decode($div->getElementsByTagName('p')->item(0)->nodeValue);
-      } elseif (strpos($class, 'field-field-body')) { // Get the body
-        if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
-       	  $body =  mb_convert_encoding($div->getElementsByTagName('div')->item(2)->nodeValue, "ISO_8859-1", "UTF-8");
-        }
-      }
-    }
+    $teaser = $html->getElementsByTagName('div')->item(0)->nodeValue;
+    $body = $html->getElementsByTagName('div')->item(1)->nodeValue;
     $content .= '<div class="news-item">';
-    $content .= $thumb;
-    $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3> - ';
+    $content .= '<img typeof="foaf:Image" src="' . (string) $story->enclosure['url'] . '" width="75" height="75" alt="OSU News Release" />';
+    $content .= '<h3 class="title">' . substr($story->link, 0, -8) . $story->title . '</a></h3> - ';
     $content .= '<div class="date">'  . date('M j, Y', strtotime($story->pubDate)) . '</div>';
 
     // Display teaser if there is one, else truncate body
     if (isset($teaser)) {
-      $content .= '<div class="news-body">' . $teaser . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
+      $content .= '<div class="news-body">' . $teaser . '&hellip;' . substr($story->link, 0, -8) . 'Read full story.</a></div>';
     } else {
-      $content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
+      $content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip;' . substr($story->link, 0, -8) . 'Read full story.</a></div>';
     }
     $content .= '</div>';
   }
