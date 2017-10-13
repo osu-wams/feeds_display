@@ -9,12 +9,13 @@
 /**
  * @returns
  *   A configuration array for this parser
+ *
  */
 function osu_news_config() {
   $feed_config = array(
     'feed_type'  => 'osu_news',
     'feed_title' => 'OSU News',
-    'feed_url'   => 'http://oregonstate.edu/ua/ncs/releases/feed/',
+    'feed_url'   => 'http://today.oregonstate.edu/releases/feed/',
   );
   return $feed_config;
 }
@@ -55,6 +56,7 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
 
     // Parse the description into HTML divs and look for specific classes
     $html->loadHTML($story->description);
+    // This is for the old feeds site, strip out later
     if (strpos($feed_url, 'oregonstate.edu/ua/ncs/releases/feed') !== false) {
       foreach ($html->getElementsByTagName('div') as $div) {
         $class = $div->getAttribute('class');
@@ -84,6 +86,7 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
       } else {
         $content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
       }
+    // End of code for the old feeds site
     } else {
       $teaser = $html->getElementsByTagName('div')->item(0)->nodeValue;
       $body = $html->getElementsByTagName('div')->item(1)->nodeValue;
