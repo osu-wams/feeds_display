@@ -13,9 +13,9 @@
  */
 function osu_news_config() {
   $feed_config = array(
-    'feed_type'  => 'osu_news',
+    'feed_type' => 'osu_news',
     'feed_title' => 'OSU News',
-    'feed_url'   => 'http://today.oregonstate.edu/releases/feed/',
+    'feed_url' => 'http://today.oregonstate.edu/releases/feed/',
   );
   return $feed_config;
 }
@@ -33,7 +33,7 @@ function osu_news_config() {
  *  A string with the formated HTML to display
  */
 function osu_news_live_feeds_parser($feed_url, $num_items) {
-  
+
   // Capture feed
   $result = drupal_http_request($feed_url);
 
@@ -46,30 +46,42 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
   $body = '';
 
   $xml = simplexml_load_string($file_contents);
-  $html = new DOMDocument; // Need this to parse the description
+  // Need this to parse the description
+  #$html = new DOMDocument;
+  // Need this to parse the description
+  $html = new DOMDocument('1.0', 'UTF-8');
+
+  // set error level.
+  $internalErrors = libxml_use_internal_errors(true);
 
   foreach ($xml->channel->item as $story) {
-    if (++$items > $num_items)
+    if (++$items > $num_items) {
       break;
+    }
 
     unset($teaser); // Don't reuse content from previous iteration
 
     // Parse the description into HTML divs and look for specific classes
     $html->loadHTML($story->description);
     // This is for the old feeds site, strip out later
-    if (strpos($feed_url, 'oregonstate.edu/ua/ncs/releases/feed') !== false) {
+    if (strpos($feed_url, 'oregonstate.edu/ua/ncs/releases/feed') !== FALSE) {
       foreach ($html->getElementsByTagName('div') as $div) {
         $class = $div->getAttribute('class');
 
         // Get the date
         if (strpos($class, 'field-field-date')) {
           $date_text = $div->getElementsByTagName('span')->item(0)->nodeValue;
-        } elseif (strpos($class, 'field-field-thumbnail')) { // Get the thumbnail URL
+        }
+        // Get the thumbnail URL.
+        elseif (strpos($class, 'field-field-thumbnail')) {
           $img = $div->getElementsByTagName('img')->item(0);
-          $thumb = $html->saveXML($img); // We want to save all of the html for the img tag
-        } elseif (strpos($class, 'field-field-teaser')) { // Get the teaser
+          // We want to save all of the html for the img tag
+          $thumb = $html->saveXML($img);
+        }
+        elseif (strpos($class, 'field-field-teaser')) { // Get the teaser
           $teaser = $div->getElementsByTagName('p')->item(0)->nodeValue;
-        } elseif (strpos($class, 'field-field-body')) { // Get the body
+        }
+        elseif (strpos($class, 'field-field-body')) { // Get the body
           if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
             $body = $div->getElementsByTagName('div')->item(2)->nodeValue;
           }
@@ -83,27 +95,31 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
       // Display teaser if there is one, else truncate body
       if (isset($teaser)) {
         $content .= '<div class="news-body">' . $teaser . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
-      } else {
+      }
+      else {
         $content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
       }
-    // End of code for the old feeds site
-    } else {
+      // End of code for the old feeds site
+    }
+    else {
       $teaser = $html->getElementsByTagName('div')->item(0)->nodeValue;
       $body = $html->getElementsByTagName('div')->item(1)->nodeValue;
       $content .= '<div class="news-item">';
       $content .= '<img typeof="foaf:Image" src="' . (string) $story->enclosure['url'] . '" width="75" height="75" alt="OSU News Release" />';
       $content .= '<h3 class="title">' . substr($story->link, 0, -8) . $story->title . '</a></h3> - ';
-      $content .= '<div class="date">'  . date('M j, Y', strtotime($story->pubDate)) . '</div>';
+      $content .= '<div class="date">' . date('M j, Y', strtotime($story->pubDate)) . '</div>';
 
       // Display teaser if there is one, else truncate body
       if (isset($teaser)) {
         $content .= '<div class="news-body">' . $teaser . '&hellip; ' . substr($story->link, 0, -8) . 'Read full story.</a></div>';
-      } else {
+      }
+      else {
         $content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip; ' . substr($story->link, 0, -8) . 'Read full story.</a></div>';
       }
     }
     $content .= '</div>';
   }
+  // Restore error level
+  libxml_use_internal_errors($internalErrors);
   return $content;
 }
-
