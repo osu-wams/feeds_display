@@ -47,8 +47,6 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
 
   $xml = simplexml_load_string($file_contents);
   // Need this to parse the description
-  #$html = new DOMDocument;
-  // Need this to parse the description
   $html = new DOMDocument('1.0', 'UTF-8');
 
   // set error level.
