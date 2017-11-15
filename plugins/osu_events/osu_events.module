@@ -76,8 +76,10 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     $file_contents = $result->data;
 
   $xml = simplexml_load_string($file_contents);
-  $html = new DOMDocument; // Need this to parse the description
-
+  // Need this to parse the description.
+  $html = new DOMDocument('1.0', 'UTF-8');
+  // set error level.
+  $internalErrors = libxml_use_internal_errors(true);
   $items   = 0;
   $content = '';
 
@@ -104,8 +106,11 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     $div = $date->parentNode;
     $div->removeChild($date);
 
-
-    $desc = $html->saveXML($div->documentElement);
+    // Needed to get the right object in order to save.
+    // Old Code.
+    // $desc = $html->saveXML($div->documentElement);
+    // New way, no warnings.
+    $desc = $html->saveXML($div->ownerDocument->documentElement);
 
 
     // Strip html except for links
@@ -173,6 +178,8 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
   }
   $content .= '<a href="' . $cal_link . '">View the Entire Calendar</a>';
 
+  // Restore error level
+  libxml_use_internal_errors($internalErrors);
   return $content;
 }
 
