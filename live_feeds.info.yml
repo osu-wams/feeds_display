@@ -4,5 +4,5 @@ description: Feeds Parser for the Module
 core: 8.x
 package: Feeds
 dependencies:
-  - block
+  - drupal:block
 version: 1.5
