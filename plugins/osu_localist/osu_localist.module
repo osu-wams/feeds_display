@@ -63,7 +63,7 @@ function osu_localist_nodeapi(&$node, $op) {
  *   An integer containing the number of items to display.
  *
  * @return string
- *   A string with the formated HTML to display
+ *   A string with the formatted HTML to display
  */
 function osu_localist_live_feeds_parser($feed_url, $num_items) {
 
@@ -132,7 +132,7 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
       continue;
     }
 
-    // Trucate the body and fix all unclosed tags.
+    // Truncate the body and fix all unclosed tags.
     $body = live_feeds_truncate_words(trim($desc), 30);
 
     // Build output string.
