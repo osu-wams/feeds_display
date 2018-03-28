@@ -35,6 +35,12 @@ function beaver_jobs_live_feeds_parser($feed_url, $num_items) {
   // Capture feed
   $result = drupal_http_request($feed_url);
 
+  if ($result->code !== '200') {
+    drupal_set_message('Unable to retrieve specified feed.', 'warning');
+    watchdog('live_feeds_beaver_jobs', 'Unable to retrieve specified feed.', null,WATCHDOG_WARNING);
+    return;
+  }
+
   // Strip non-print characters from raw feed
   $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
 

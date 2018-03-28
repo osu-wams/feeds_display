@@ -36,6 +36,12 @@ function osu_announcements_live_feeds_parser($feed_url, $num_items) {
   // Capture feed
   $result = drupal_http_request($feed_url);
 
+  if ($result->code !== '200') {
+    drupal_set_message('Unable to retrieve specified feed.', 'warning');
+    watchdog('live_feeds_osu_announcements', 'Unable to retrieve specified feed.', null,WATCHDOG_WARNING);
+    return;
+  }
+
   // Strip non-print characters from raw feed
   $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
 
@@ -53,8 +59,8 @@ function osu_announcements_live_feeds_parser($feed_url, $num_items) {
 
     $body = live_feeds_truncate_words($body, 25);
 
-    $tidy = new tidy();
-    $body = $tidy->repairString($body, array('show-body-only' => 1));
+//    $tidy = new tidy();
+//    $body = $tidy->repairString($body, array('show-body-only' => 1));
 
     $content .=  '<div class="news-item">';
     $content .= '<h3 class="title"><a href="' . $item->link . '">' . $item->title . '</a></h3> - ';
