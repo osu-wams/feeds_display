@@ -1,13 +1,15 @@
 <?php
 
 /**
- * @file gcal_feed.module
- *  Provides a custom parser for the Live Feeds module
- *  to parse Atom XML from a Google Calendar
+ * @file
+ * Google Calendar Live Feeds Plugin.
  *
+ * Provides a custom parser for the Live Feeds module
+ *  to parse Atom XML from a Google Calendar.
  */
 
 /**
+ * Parser configuration.
  *
  * @returns
  *   A configuration array for this parser
@@ -24,8 +26,7 @@ function gcal_feed_config() {
 }
 
 /**
- * Implementation of hook_form_FORM_ID_alter
- *
+ * Implements hook_form_FORM_ID_alter().
  */
 function gcal_feed_form_feed_node_form_alter(&$form, &$form_state) {
 
@@ -35,8 +36,8 @@ function gcal_feed_form_feed_node_form_alter(&$form, &$form_state) {
     '#weight' => -1,
     '#type' => 'textfield',
     '#title' => t('The ID of the Google Calendar'),
-    '#description' => t('The email address of a calendar. ' .
-      'If you want to access a primary calendar, you can use the account email address. ' .
+    '#description' => t('The email address of a calendar.' .
+      'If you want to access a primary calendar, you can use the account email address.' .
       'Otherwise you can find it in Google Calendar on the calendar settings page.'
     ),
     '#default_value' => urldecode(variable_get('gcal_id_' . $form['nid']['#value'], $config['gcal_id_default'])),
@@ -65,7 +66,7 @@ function gcal_feed_form_feed_node_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Implementation of hook_nodeapi
+ * Implements hook_nodeapi().
  *
  * Save the extra fields for this module.
  */
@@ -76,7 +77,7 @@ function gcal_feed_node_form_submit($form, &$form_state) {
 }
 
 /**
- * Implementation of hook_node_form_validate
+ * Implements hook_node_form_validate().
  *
  *  Validate the extra fields for this module.
  */
@@ -101,10 +102,9 @@ function gcal_feed_node_form_validate($form, &$form_state) {
 }
 
 /**
- * Implementation of hook_admin
+ * Implements hook_admin().
  *
- * Create an admin form for these nodes
- *
+ * Create an admin form for these nodes.
  */
 function gcal_feed_admin() {
   $form = array();
@@ -128,10 +128,9 @@ function gcal_feed_admin() {
 }
 
 /**
- * Implementation of hook_menu
+ * Implements hook_menu().
  *
- * Add a menu item for the admin page
- *
+ * Add a menu item for the admin page.
  */
 function gcal_feed_menu() {
 
@@ -150,47 +149,46 @@ function gcal_feed_menu() {
 }
 
 /**
- * Parse the RSS and display the feed
+ * Parse the RSS and display the feed.
  *
- * @param $feed_url
- *  A string containing the URL of the feed
- * @param $num_items
- *  An integer containing the number of items to display
+ * @param string $feed_url
+ *   A string containing the URL of the feed.
+ * @param int $num_items
+ *   An integer containing the number of items to display.
  *
- * @return
- *  A string with the formated HTML to display
- *
+ * @return string
+ *   A string with the formatted HTML to display
  */
 function gcal_feed_live_feeds_parser($feed_url, $num_items) {
 
   $cal_link = $feed_url;
-  // Add API key to url
+  // Add API key to url.
   $feed_key = variable_get('gcal_feed_key');
   $feed_id = substr($feed_url, 41);
   $feed_url = 'https://www.googleapis.com/calendar/v3/calendars/' . $feed_id . '/events?key=' . $feed_key;
 
-  // Get today's date
+  // Get today's date.
   $today_mon = date('m', time());
   $today_day = date('d', time());
   $today_year = date('Y', time());
 
   // Set the start date for items to retrieve
-  // We also grab the user's ip to avoid hitting quota limits on the gcal API
+  // We also grab the user's ip to avoid hitting quota limits on the gcal API.
   $feed_url .= "&timeMin=$today_year-$today_mon-$today_day" . "T00:00:00Z";
   $feed_url .= "&singleEvents=true";
   $feed_url .= "&maxResults=$num_items";
   $feed_url .= "&orderBy=starttime";
-  // will change to = Drupal::request()->getClientIp() in D8
+  // Will change to = Drupal::request()->getClientIp() in D8.
   $user_ip = ip_address();
   $feed_url .= "&userIp=$user_ip";
 
-  // Get the feed data
+  // Get the feed data.
   $result = drupal_http_request($feed_url);
 
-  // Strip non-print characters from raw feed
+  // Strip non-print characters from raw feed.
   $file_contents = preg_replace('/[^[:print:]]/', '', $result->data);
 
-  // Now parse it as json
+  // Now parse it as json.
   $json = json_decode($result->data, TRUE);
   $items = 0;
 
@@ -204,31 +202,32 @@ function gcal_feed_live_feeds_parser($feed_url, $num_items) {
   }
 
   // We have to save each entry to an array
-  // so that we can sort it by date before printing
+  // so that we can sort it by date before printing.
   $events = array();
 
   foreach ($json['items'] as $entry) {
-    if (++$items > $num_items)
-    break;
+    if (++$items > $num_items) {
+      break;
+    }
 
-    // Capture the event link
+    // Capture the event link.
     $link = $entry['htmlLink'];
 
     // If the event link is empty, create one from scratch. Take that, Google!
     if (empty($link)) {
-      // generate an eid by base64encoding the item id and the organizer email.
+      // Generate an eid by base64encoding the item id and the organizer email.
       $eid = base64_encode($entry['id'] . ' ' . $entry['organizer']['email']);
       $link = 'http://www.google.com/calendar/render?eid=' . $eid;
     }
 
-    // Get the event data
+    // Get the event data.
     $title = $entry['summary'];
     $desc = truncate($entry['description']);
 
-    // Get the start time
+    // Get the start time.
     $sdate = isset($entry['start']['dateTime']) ? $entry['start']['dateTime'] : $entry['start']['date'];
 
-    // Parse the date
+    // Parse the date.
     $date = strtotime($sdate);
     $day = date('d', $date);
     $mon = date('m', $date);
@@ -236,10 +235,10 @@ function gcal_feed_live_feeds_parser($feed_url, $num_items) {
     $year = date('Y', $date);
     $spell_mon = date('F', $date);
 
-    // Get the location
+    // Get the location.
     $location = $entry['location'];
 
-    // Build output string
+    // Build output string.
     $content = '<div class="calendar-item gcal-feed">';
     $content .= '<a href=\'' . $link . '\'>';
     $content .= '<div class="date calendar">';
@@ -258,14 +257,14 @@ function gcal_feed_live_feeds_parser($feed_url, $num_items) {
     }
     $content .= '</div></div>';
 
-    // Add it to the array
+    // Add it to the array.
     $events[] = array('date' => $date, 'content' => $content);
   }
 
-  // Sort the array using our function below
+  // Sort the array using our function below.
   usort($events, 'dsort');
 
-  // Build up the single content string to return
+  // Build up the single content string to return.
   $content = '';
   foreach ($events as $event) {
     $content .= $event['content'];
@@ -276,16 +275,14 @@ function gcal_feed_live_feeds_parser($feed_url, $num_items) {
 }
 
 /**
- * Callback function to sort an array
- * by a 'date' element
+ * Callback function to sort an array by a 'date' element.
  */
 function dsort($a, $b) {
   return ($a['date'] < $b['date']) ? -1 : 1;
 }
 
 /**
- * Utility function to truncate near num_chars to the closest word and append an
- * ellipsis.
+ * Truncate near num_chars to the closest word and append an ellipsis.
  */
 function truncate($string, $append = "&hellip;&nbsp;", $num_chars = 140) {
   $string = trim($string, " \t\n\r\0\x0B");
@@ -298,4 +295,3 @@ function truncate($string, $append = "&hellip;&nbsp;", $num_chars = 140) {
 
   return $string;
 }
-
