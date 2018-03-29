@@ -1,15 +1,18 @@
 <?php
+
 /**
- * @file osu_news.module
- *  Provides a custom parser for the Live Feeds  module
- *  to parse RSS from the OSU News site
+ * @file
+ * OSU News Live Feeds Plugin.
+ *
+ * Provides a custom parser for the Live Feeds  module
+ *  to parse RSS from the OSU News site.
  */
 
-
 /**
+ * Parser configuration.
+ *
  * @returns
  *   A configuration array for this parser
- *
  */
 function osu_news_config() {
   $feed_config = array(
@@ -20,24 +23,29 @@ function osu_news_config() {
   return $feed_config;
 }
 
-
 /**
- * Parse the RSS and display the feed
+ * Parse the RSS and display the feed.
  *
- * @param $feed_url
- *  A string containing the URL of the feed
- * @param $num_items
- *  An integer containing the number of items to display
+ * @param string $feed_url
+ *   A string containing the URL of the feed.
+ * @param int $num_items
+ *   An integer containing the number of items to display.
  *
- * @return
- *  A string with the formated HTML to display
+ * @return string|null
+ *   A string with the formated HTML to display
  */
 function osu_news_live_feeds_parser($feed_url, $num_items) {
 
-  // Capture feed
+  // Capture feed.
   $result = drupal_http_request($feed_url);
 
-  // Strip non-print characters from raw feed
+  if ($result->code !== '200') {
+    drupal_set_message('Unable to retrieve specified feed.', 'warning');
+    watchdog('live_feeds_osu_news', 'Unable to retrieve specified feed.', NULL, WATCHDOG_WARNING);
+    return;
+  }
+
+  // Strip non-print characters from raw feed.
   $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
 
   $items = 0;
@@ -46,40 +54,43 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
   $body = '';
 
   $xml = simplexml_load_string($file_contents);
-  // Need this to parse the description
+  // Need this to parse the description.
   $html = new DOMDocument('1.0', 'UTF-8');
 
-  // set error level.
-  $internalErrors = libxml_use_internal_errors(true);
+  // Set error level.
+  $internalErrors = libxml_use_internal_errors(TRUE);
 
   foreach ($xml->channel->item as $story) {
     if (++$items > $num_items) {
       break;
     }
 
-    unset($teaser); // Don't reuse content from previous iteration
+    // Don't reuse content from previous iteration.
+    unset($teaser);
 
-    // Parse the description into HTML divs and look for specific classes
+    // Parse the description into HTML divs and look for specific classes.
     $html->loadHTML($story->description);
-    // This is for the old feeds site, strip out later
+    // This is for the old feeds site, strip out later.
     if (strpos($feed_url, 'oregonstate.edu/ua/ncs/releases/feed') !== FALSE) {
       foreach ($html->getElementsByTagName('div') as $div) {
         $class = $div->getAttribute('class');
 
-        // Get the date
+        // Get the date.
         if (strpos($class, 'field-field-date')) {
           $date_text = $div->getElementsByTagName('span')->item(0)->nodeValue;
         }
         // Get the thumbnail URL.
         elseif (strpos($class, 'field-field-thumbnail')) {
           $img = $div->getElementsByTagName('img')->item(0);
-          // We want to save all of the html for the img tag
+          // We want to save all of the html for the img tag.
           $thumb = $html->saveXML($img);
         }
-        elseif (strpos($class, 'field-field-teaser')) { // Get the teaser
+        // Get the teaser.
+        elseif (strpos($class, 'field-field-teaser')) {
           $teaser = $div->getElementsByTagName('p')->item(0)->nodeValue;
         }
-        elseif (strpos($class, 'field-field-body')) { // Get the body
+        // Get the body.
+        elseif (strpos($class, 'field-field-body')) {
           if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
             $body = $div->getElementsByTagName('div')->item(2)->nodeValue;
           }
@@ -90,14 +101,14 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
       $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3> - ';
       $content .= '<div class="date">' . date('M j, Y', strtotime($date_text)) . '</div>';
 
-      // Display teaser if there is one, else truncate body
+      // Display teaser if there is one, else truncate body.
       if (isset($teaser)) {
         $content .= '<div class="news-body">' . $teaser . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
       }
       else {
         $content .= '<div class="news-body">' . live_feeds_truncate_words(trim($body), 20) . '&hellip; <a href="' . $story->link . '">Read full story.</a></div>';
       }
-      // End of code for the old feeds site
+      // End of code for the old feeds site.
     }
     else {
       $teaser = $html->getElementsByTagName('div')->item(0)->nodeValue;
@@ -107,7 +118,7 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
       $content .= '<h3 class="title">' . substr($story->link, 0, -8) . $story->title . '</a></h3> - ';
       $content .= '<div class="date">' . date('M j, Y', strtotime($story->pubDate)) . '</div>';
 
-      // Display teaser if there is one, else truncate body
+      // Display teaser if there is one, else truncate body.
       if (isset($teaser)) {
         $content .= '<div class="news-body">' . $teaser . '&hellip; ' . substr($story->link, 0, -8) . 'Read full story.</a></div>';
       }
@@ -117,7 +128,7 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
     }
     $content .= '</div>';
   }
-  // Restore error level
+  // Restore error level.
   libxml_use_internal_errors($internalErrors);
   return $content;
 }
