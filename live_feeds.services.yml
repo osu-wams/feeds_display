@@ -1,6 +1,6 @@
 services:
   live_feeds.live_feed:
     class: Drupal\live_feeds\GetFeed
-    arguments: []
+    arguments: ['@http_client']
   live_feeds.live_feeds_smart_trim:
     class: Drupal\live_feeds\LiveFeedsSmartTrim

@@ -27,27 +27,27 @@ function live_feeds_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_theme().
  */
 function live_feeds_theme($existing, $type, $theme, $path) {
-  return array(
-    'live_feeds_events' => array(
-      'variables' => array(
+  return [
+    'live_feeds_events' => [
+      'variables' => [
         'live_feeds_event_link' => NULL,
         'live_feeds_cal_data' => NULL,
-        'attributes' => array(
-          'class' => array(
+        'attributes' => [
+          'class' => [
             'live-feeds-block',
-          ),
-        ),
-      ),
-    ),
-    'live_feeds_news' => array(
-      'variables' => array(
+          ],
+        ],
+      ],
+    ],
+    'live_feeds_news' => [
+      'variables' => [
         'live_feeds_news_data' => NULL,
-        'attributes' => array(
-          'class' => array(
+        'attributes' => [
+          'class' => [
             'live-feeds-block',
-          ),
-        ),
-      ),
-    ),
-  );
+          ],
+        ],
+      ],
+    ],
+  ];
 }

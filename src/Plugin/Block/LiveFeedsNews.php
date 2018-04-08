@@ -10,7 +10,6 @@ use Drupal\Core\Url;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,6 +28,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    * @var \GuzzleHttp\Client
    */
   protected $httpClient;
+
   /**
    * Drupal\live_feeds\LiveFeedsSmartTrim definition.
    *
@@ -76,10 +76,10 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function defaultConfiguration() {
     return [
-        'live_feeds_news_link' => $this->t(''),
-        'live_feeds_items_total' => $this->t('5'),
-        'live_feeds_news_word_limit' => $this->t('30'),
-      ] + parent::defaultConfiguration();
+      'live_feeds_news_link' => $this->t(''),
+      'live_feeds_items_total' => $this->t('5'),
+      'live_feeds_news_word_limit' => $this->t('30'),
+    ] + parent::defaultConfiguration();
 
   }
 
@@ -139,7 +139,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $date_text = '';
     $body = '';
     $build['#markup'] = '';
-    //$xml = simplexml_load_string($file_contents);
+    // $xml = simplexml_load_string($file_contents);
     $xml = $this->parseFeed($this->configuration['live_feeds_news_link']);
     if ($xml !== FALSE) {
       // Need this to parse the description.
@@ -200,11 +200,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         }
       }
       $build['#theme'] = 'live_feeds_news';
-      $build['#attached'] = array(
-        'library' => array(
+      $build['#attached'] = [
+        'library' => [
           'live_feeds/live_feeds_news',
-        ),
-      );
+        ],
+      ];
     }
     else {
       $build['#markup'] .= "There was an error loading the feed.";
@@ -231,10 +231,12 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
       $xml = simplexml_load_string($file_contents);
       return $xml;
-    } catch (RequestException $e) {
+    }
+    catch (RequestException $e) {
       // Log the failed request to watchdog.
       watchdog_exception('live_feeds', $e);
     }
     return FALSE;
   }
+
 }
