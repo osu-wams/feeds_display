@@ -6,7 +6,7 @@ use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -43,12 +43,16 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
+   * @param \GuzzleHttp\ClientInterface $http_client
+   *   The HTTP Client.
+   * @param \Drupal\live_feeds\LiveFeedsSmartTrim $live_feeds_smart_trim
+   *   The Live Feeds Smart Trim service.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    Client $http_client,
+    ClientInterface $http_client,
     LiveFeedsSmartTrim $live_feeds_smart_trim
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -74,7 +78,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    */
   public function defaultConfiguration() {
     return [
-      'live_feeds_event_link' => $this->t(''),
+      'live_feeds_event_link' => '',
       'live_feeds_event_total' => $this->t('5'),
       'live_feeds_event_word_limit' => $this->t('30'),
     ] + parent::defaultConfiguration();
@@ -190,7 +194,6 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
         // Start and end dates use the osu namespace.
         $nodes = $event->children('edu.oregonstate.calendar', TRUE);
         $start = $nodes->dtstart;
-        $end = $nodes->dtend;
 
         // Parse the date.
         $date = strtotime($start);

@@ -8,7 +8,7 @@ use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -45,12 +45,16 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    *   The plugin_id for the plugin instance.
    * @param string $plugin_definition
    *   The plugin implementation definition.
+   * @param \GuzzleHttp\ClientInterface $http_client
+   *   The HTTP Client.
+   * @param \Drupal\live_feeds\LiveFeedsSmartTrim $live_feeds_smart_trim
+   *   The Live Feeds trimmer.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    Client $http_client,
+    ClientInterface $http_client,
     LiveFeedsSmartTrim $live_feeds_smart_trim
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -76,7 +80,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function defaultConfiguration() {
     return [
-      'live_feeds_news_link' => $this->t(''),
+      'live_feeds_news_link' => '',
       'live_feeds_items_total' => $this->t('5'),
       'live_feeds_news_word_limit' => $this->t('30'),
     ] + parent::defaultConfiguration();
@@ -149,8 +153,6 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         if (++$items > (int) $this->configuration['live_feeds_items_total']) {
           break;
         }
-        // Don't reuse content from previous iteration.
-        unset($teaser);
 
         // Parse the description into HTML divs and look for specific classes.
         $html->loadHTML($story->description);

@@ -10,16 +10,6 @@ namespace Drupal\live_feeds;
 class LiveFeedsSmartTrim {
 
   /**
-   * @var
-   */
-  private $stringBig;
-
-  /**
-   * @var
-   */
-  private $wordLimit;
-
-  /**
    * Takes a long string and truncates it after a number of words.
    *
    * @param string $stringBig
