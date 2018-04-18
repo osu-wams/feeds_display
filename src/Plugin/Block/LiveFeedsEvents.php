@@ -92,7 +92,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
     $form['live_feeds_event_link'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Event RSS Feed'),
-      '#description' => $this->t('Enter the RSS feeds to the Event Calender.'),
+      '#description' => $this->t('Enter the RSS feeds to the Event Calendar.'),
       '#default_value' => $this->configuration['live_feeds_event_link'],
       '#maxlength' => 256,
       '#size' => 64,
@@ -102,7 +102,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
     $form['live_feeds_event_total'] = [
       '#type' => 'number',
       '#title' => $this->t('Limit number of events.'),
-      '#description' => $this->t('Enter a number grater than 0 to limit the display of events.'),
+      '#description' => $this->t('Enter a number greater than 0 to limit the display of events.'),
       '#default_value' => $this->configuration['live_feeds_event_total'],
       '#min' => 1,
       '#max' => 5,

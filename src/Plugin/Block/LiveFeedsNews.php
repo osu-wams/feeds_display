@@ -104,7 +104,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $form['live_feeds_items_total'] = [
       '#type' => 'number',
       '#title' => $this->t('Number of Items to display.'),
-      '#description' => $this->t('Enter a Number to change how many items are displaed in the block.'),
+      '#description' => $this->t('Enter a Number to change how many items are displayed in the block.'),
       '#default_value' => $this->configuration['live_feeds_items_total'],
       '#weight' => '2',
       '#min' => 1,
