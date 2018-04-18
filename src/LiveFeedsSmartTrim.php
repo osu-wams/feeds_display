@@ -8,8 +8,6 @@ namespace Drupal\live_feeds;
  * @package Drupal\live_feeds
  */
 class LiveFeedsSmartTrim {
-  private $stringBig;
-  private $wordLimit;
 
   /**
    * Takes a long string and truncates it after a number of words.
@@ -19,7 +17,7 @@ class LiveFeedsSmartTrim {
    * @param int $wordLimit
    *   The number of words to limit to.
    *
-   * @return string string
+   * @return string
    *   The truncated string.
    */
   public function liveFeedsLimit($stringBig, $wordLimit) {

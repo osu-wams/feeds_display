@@ -8,9 +8,8 @@ use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,6 +28,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    * @var \GuzzleHttp\Client
    */
   protected $httpClient;
+
   /**
    * Drupal\live_feeds\LiveFeedsSmartTrim definition.
    *
@@ -45,12 +45,16 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    *   The plugin_id for the plugin instance.
    * @param string $plugin_definition
    *   The plugin implementation definition.
+   * @param \GuzzleHttp\ClientInterface $http_client
+   *   The HTTP Client.
+   * @param \Drupal\live_feeds\LiveFeedsSmartTrim $live_feeds_smart_trim
+   *   The Live Feeds trimmer.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    Client $http_client,
+    ClientInterface $http_client,
     LiveFeedsSmartTrim $live_feeds_smart_trim
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -76,10 +80,10 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function defaultConfiguration() {
     return [
-        'live_feeds_news_link' => $this->t(''),
-        'live_feeds_items_total' => $this->t('5'),
-        'live_feeds_news_word_limit' => $this->t('30'),
-      ] + parent::defaultConfiguration();
+      'live_feeds_news_link' => '',
+      'live_feeds_items_total' => $this->t('5'),
+      'live_feeds_news_word_limit' => $this->t('30'),
+    ] + parent::defaultConfiguration();
 
   }
 
@@ -100,7 +104,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $form['live_feeds_items_total'] = [
       '#type' => 'number',
       '#title' => $this->t('Number of Items to display.'),
-      '#description' => $this->t('Enter a Number to change how many items are displaed in the block.'),
+      '#description' => $this->t('Enter a Number to change how many items are displayed in the block.'),
       '#default_value' => $this->configuration['live_feeds_items_total'],
       '#weight' => '2',
       '#min' => 1,
@@ -139,7 +143,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $date_text = '';
     $body = '';
     $build['#markup'] = '';
-    //$xml = simplexml_load_string($file_contents);
+    // $xml = simplexml_load_string($file_contents);
     $xml = $this->parseFeed($this->configuration['live_feeds_news_link']);
     if ($xml !== FALSE) {
       // Need this to parse the description.
@@ -149,8 +153,6 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         if (++$items > (int) $this->configuration['live_feeds_items_total']) {
           break;
         }
-        // Don't reuse content from previous iteration.
-        unset($teaser);
 
         // Parse the description into HTML divs and look for specific classes.
         $html->loadHTML($story->description);
@@ -200,11 +202,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         }
       }
       $build['#theme'] = 'live_feeds_news';
-      $build['#attached'] = array(
-        'library' => array(
+      $build['#attached'] = [
+        'library' => [
           'live_feeds/live_feeds_news',
-        ),
-      );
+        ],
+      ];
     }
     else {
       $build['#markup'] .= "There was an error loading the feed.";
@@ -231,10 +233,12 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
       $xml = simplexml_load_string($file_contents);
       return $xml;
-    } catch (RequestException $e) {
+    }
+    catch (RequestException $e) {
       // Log the failed request to watchdog.
       watchdog_exception('live_feeds', $e);
     }
     return FALSE;
   }
+
 }

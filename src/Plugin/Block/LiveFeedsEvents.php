@@ -6,9 +6,8 @@ use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -27,6 +26,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    * @var \GuzzleHttp\Client
    */
   protected $httpClient;
+
   /**
    * Drupal\live_feeds\LiveFeedsSmartTrim definition.
    *
@@ -43,12 +43,16 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
+   * @param \GuzzleHttp\ClientInterface $http_client
+   *   The HTTP Client.
+   * @param \Drupal\live_feeds\LiveFeedsSmartTrim $live_feeds_smart_trim
+   *   The Live Feeds Smart Trim service.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    Client $http_client,
+    ClientInterface $http_client,
     LiveFeedsSmartTrim $live_feeds_smart_trim
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -74,7 +78,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    */
   public function defaultConfiguration() {
     return [
-      'live_feeds_event_link' => $this->t(''),
+      'live_feeds_event_link' => '',
       'live_feeds_event_total' => $this->t('5'),
       'live_feeds_event_word_limit' => $this->t('30'),
     ] + parent::defaultConfiguration();
@@ -85,20 +89,20 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    * {@inheritdoc}
    */
   public function blockForm($form, FormStateInterface $form_state) {
-    $form['live_feeds_event_link'] = array(
+    $form['live_feeds_event_link'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Event RSS Feed'),
-      '#description' => $this->t('Enter the RSS feeds to the Event Calender.'),
+      '#description' => $this->t('Enter the RSS feeds to the Event Calendar.'),
       '#default_value' => $this->configuration['live_feeds_event_link'],
       '#maxlength' => 256,
       '#size' => 64,
       '#weight' => '1',
       '#required' => TRUE,
-    );
-    $form['live_feeds_event_total'] = array(
+    ];
+    $form['live_feeds_event_total'] = [
       '#type' => 'number',
       '#title' => $this->t('Limit number of events.'),
-      '#description' => $this->t('Enter a number grater than 0 to limit the display of events.'),
+      '#description' => $this->t('Enter a number greater than 0 to limit the display of events.'),
       '#default_value' => $this->configuration['live_feeds_event_total'],
       '#min' => 1,
       '#max' => 5,
@@ -106,8 +110,8 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
       '#size' => 1,
       '#weight' => '2',
       '#required' => TRUE,
-    );
-    $form['live_feeds_event_word_limit'] = array(
+    ];
+    $form['live_feeds_event_word_limit'] = [
       '#type' => 'number',
       '#title' => $this->t('Word Limit'),
       '#description' => $this->t('Number of words to show from the body of the feed.'),
@@ -117,7 +121,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
       '#size' => 2,
       '#weight' => '3',
       '#required' => TRUE,
-    );
+    ];
 
     return $form;
   }
@@ -190,7 +194,6 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
         // Start and end dates use the osu namespace.
         $nodes = $event->children('edu.oregonstate.calendar', TRUE);
         $start = $nodes->dtstart;
-        $end = $nodes->dtend;
 
         // Parse the date.
         $date = strtotime($start);
@@ -218,7 +221,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
         $body = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($desc), (int) $this->configuration['live_feeds_event_word_limit']);
         // $body = trim($desc);
         $tidy = new \tidy();
-        $body = $tidy->repairString($body, array('show-body-only' => 1));
+        $body = $tidy->repairString($body, ['show-body-only' => 1]);
         // Build output string.
         $build['#live_feeds_cal_data']['#' . $items]['#day']['#markup'] = $day;
         $build['#live_feeds_cal_data']['#' . $items]['#month']['#markup'] = $month;
@@ -229,11 +232,11 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
       }
       $build['#live_feeds_event_link']['#markup'] = '<a href="' . $cal_link . '">View the Entire Calendar</a>';
       $build['#theme'] = 'live_feeds_events';
-      $build['#attached'] = array(
-        'library' => array(
+      $build['#attached'] = [
+        'library' => [
           'live_feeds/live_feeds_events',
-        ),
-      );
+        ],
+      ];
     }
     else {
       $build['#markup'] .= "There was an error loading the Event Calendar.";
@@ -260,10 +263,12 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
       $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
       $xml = simplexml_load_string($file_contents);
       return $xml;
-    } catch (RequestException $e) {
+    }
+    catch (RequestException $e) {
       // Log the failed request to watchdog.
       watchdog_exception('live_feeds', $e);
     }
     return FALSE;
   }
+
 }
