@@ -85,7 +85,7 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
   $date_style = variable_get('osu_localist_date_style', 'calendar');
 
   // Parse the feed_url to determine the calendar link.
-  $cal_link = $feed_url;
+  $cal_link = str_replace('.xml', '', $feed_url);
 
   foreach ($xml->channel->item as $event) {
     if (++$items > $num_items) {
