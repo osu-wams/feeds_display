@@ -107,7 +107,7 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
     $date = $event->pubDate;
 
     // Strip html except for links.
-    $desc = strip_tags($desc, '<a>');
+    $desc = strip_tags($desc, '');
 
     // Parse the date.
     $date = strtotime($date);

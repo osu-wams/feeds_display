@@ -60,7 +60,7 @@ function osu_announcements_live_feeds_parser($feed_url, $num_items) {
     $date = date('M j, Y', strtotime($item->pubDate));
 
     // Strip html except for links.
-    $body = strip_tags($item->description, '<a>');
+    $body = strip_tags($item->description, '');
 
     $body = live_feeds_truncate_words($body, 25);
 
