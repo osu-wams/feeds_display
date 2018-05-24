@@ -121,7 +121,7 @@ function osu_events_live_feeds_parser($feed_url, $num_items) {
     $desc = $html->saveXML($div->ownerDocument->documentElement);
 
     // Strip html except for links.
-    $desc = strip_tags($desc, '<a>');
+    $desc = strip_tags($desc, '');
 
     // Start and end dates use the osu namespace.
     $nodes = $event->children('edu.oregonstate.calendar', TRUE);
