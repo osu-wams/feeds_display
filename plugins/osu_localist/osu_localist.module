@@ -98,7 +98,7 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
     $desc = $event->description;
 
     // Strip date info from title.
-    $title = preg_replace("/^[\s\S]*:([\s\S]*)$/i", "$1", $title);
+    $title = preg_replace("/^[\s\S]*:([\s\S]*)$/iU", "$1", $title);
 
     // Preserve utf8 characters after embedding as html entities.
     $html->loadHTML(mb_convert_encoding((string) $desc, 'HTML-ENTITIES', 'UTF-8'));
@@ -107,7 +107,7 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
     $date = $event->pubDate;
 
     // Strip html except for links.
-    $desc = strip_tags($desc, '<a>');
+    $desc = strip_tags($desc, '');
 
     // Parse the date.
     $date = strtotime($date);
