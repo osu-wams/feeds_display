@@ -50,8 +50,6 @@ function osu_news_live_feeds_parser($feed_url, $num_items) {
 
   $items = 0;
   $content = '';
-  $thumb = '';
-  $body = '';
 
   $xml = simplexml_load_string($file_contents);
   // Need this to parse the description.
