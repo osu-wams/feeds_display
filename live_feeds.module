@@ -211,6 +211,9 @@ function live_feeds_form_feed_node_form_alter(&$form, &$form_state) {
   // Set default and size for "Number of Items" field.
   $form['num_items']['und'][0]['value']['#default_value'] = 5;
   $form['num_items']['und'][0]['value']['#size'] = 3;
+  if (isset($form_state['node']->num_items['und'][0]['value'])) {
+    $form['num_items']['und'][0]['value']['#default_value'] = $form_state['node']->num_items['und'][0]['value'];
+  }
 
   // The feed type - based on available parsers.
   $form['feed_type']['und']['#options'] = $options;
