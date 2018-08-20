@@ -10,6 +10,7 @@ dependencies[] = features
 dependencies[] = og
 dependencies[] = text
 dependencies[] = views
+dependencies[] = osu_localist
 features[context][] = live-feeds-contextual-blocks
 features[ctools][] = context:context:3
 features[ctools][] = views:views_default:3.0
