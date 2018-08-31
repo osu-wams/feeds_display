@@ -76,6 +76,7 @@
   margin: 0;
   padding: 0;
   text-transform: none;
+  background-color: transparent;
 }
 
 .live-feeds-block .calendar-item p.title {
