@@ -24,9 +24,9 @@ function osu_localist_config() {
 }
 
 /**
- * Implements hook_form_alter().
+ * Implements hook_form_FORM_ID_alter().
  */
-function osu_localist_form_not_alter(&$form, &$form_state, $form_id) {
+function osu_localist_form_node_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'feed_node_form') {
 
     drupal_add_js(drupal_get_path('module', 'osu_localist') . '/osu_localist.js');
@@ -72,7 +72,7 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
 
   if ($result->code !== '200') {
     if (user_is_logged_in()) {
-      drupal_set_message('Unable to retrieve specified feed.', 'warning');
+      drupal_set_message(t('Unable to retrieve specified feed.'), 'warning');
     }
     watchdog('live_feeds_osu_news', 'Unable to retrieve specified feed.', NULL, WATCHDOG_WARNING);
     return;

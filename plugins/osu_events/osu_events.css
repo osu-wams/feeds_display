@@ -21,6 +21,7 @@
   font-weight: bold;
   margin-top: .2em;
 }
+
 .live-feeds-block .calendar-item .date.classic .day {
   color: #c34500;
   font-size: 34px;
@@ -88,5 +89,3 @@
 .live-feeds-block .calendar-item .title a {
   text-decoration: none;
 }
-
-
