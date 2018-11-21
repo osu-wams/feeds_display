@@ -40,7 +40,9 @@ function generic_parser_live_feeds_parser($feed_url, $num_items) {
   $result = drupal_http_request($feed_url);
 
   if ($result->code !== '200') {
-    drupal_set_message('Unable to retrieve specified feed.', 'warning');
+    if (user_is_logged_in()) {
+      drupal_set_message('Unable to retrieve specified feed.', 'warning');
+    }
     watchdog('live_feeds_generic_parser', 'Unable to retrieve specified feed.', NULL, WATCHDOG_WARNING);
     return;
   }
