@@ -4,5 +4,5 @@ description = A plugin for Live Feeds to parse a Google Calendar, requires an AP
 dependencies[] = live_feeds
 package = Live Feeds
 core = 7.x
-version = 7.x-3.2
+version = 7.x-3.4
 configure = admin/config/content/gcal_feed
