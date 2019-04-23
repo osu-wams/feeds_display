@@ -2,6 +2,7 @@
 
 namespace Drupal\live_feeds\Plugin\Block;
 
+use DOMDocument;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
@@ -147,7 +148,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $xml = $this->parseFeed($this->configuration['live_feeds_news_link']);
     if ($xml !== FALSE) {
       // Need this to parse the description.
-      $html = new \DOMDocument();
+      $html = new DOMDocument();
 
       foreach ($xml->channel->item as $story) {
         if (++$items > (int) $this->configuration['live_feeds_items_total']) {
@@ -157,6 +158,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         // Parse the description into HTML divs and look for specific classes.
         $html->loadHTML($story->description);
         foreach ($html->getElementsByTagName('div') as $div) {
+          /** @var \DOMElement $div */
           $class = $div->getAttribute('class');
 
           // Get the Date.

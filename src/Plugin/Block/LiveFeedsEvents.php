@@ -2,13 +2,16 @@
 
 namespace Drupal\live_feeds\Plugin\Block;
 
+use DOMDocument;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use tidy;
 
 /**
  * Provides a 'Live Feeds Events' block.
@@ -47,17 +50,21 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
    *   The HTTP Client.
    * @param \Drupal\live_feeds\LiveFeedsSmartTrim $live_feeds_smart_trim
    *   The Live Feeds Smart Trim service.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The Drupal Messenger Interface.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
     ClientInterface $http_client,
-    LiveFeedsSmartTrim $live_feeds_smart_trim
+    LiveFeedsSmartTrim $live_feeds_smart_trim,
+    MessengerInterface $messenger
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->httpClient = $http_client;
     $this->liveFeedsSmartTrim = $live_feeds_smart_trim;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -69,7 +76,8 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
       $plugin_id,
       $plugin_definition,
       $container->get('http_client'),
-      $container->get('live_feeds.live_feeds_smart_trim')
+      $container->get('live_feeds.live_feeds_smart_trim'),
+      $container->get('messenger')
     );
   }
 
@@ -132,15 +140,15 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
   public function blockValidate($form, FormStateInterface $form_state) {
     parent::blockValidate($form, $form_state);
     if ($form_state->getValue('live_feeds_event_total') > 5) {
-      drupal_set_message($this->t('Maximum number of events is 5.'), 'error');
+      $this->messenger->addError($this->t('Maximum number of events is 5.'));
       $form_state->setErrorByName('live_feeds_event_total', $this->t('Too many events, 5 or less can be set.'));
     }
     if ($form_state->getValue('live_feeds_event_total') < 0) {
-      drupal_set_message($this->t('Can not have a negative number of events to show.'), 'error');
+      $this->messenger->addError($this->t('Can not have a negative number of events to show.'));
       $form_state->setErrorByName('live_feeds_event_total', $this->t('Must be a positive number.'));
     }
     if ($form_state->getValue('live_feeds_event_word_limit') < 0) {
-      drupal_set_message($this->t('Can not set a word limit below 0.'));
+      $this->messenger->addError($this->t('Can not set a word limit below 0.'));
       $form_state->setErrorByName('live_feeds_event_word_limit', $this->t('Must be a positive number.'));
     }
   }
@@ -162,7 +170,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
     $feed_url = $this->configuration['live_feeds_event_link'];
     $xml = $this->parseFeed($this->configuration['live_feeds_event_link']);
     // Need this to parse the description.
-    $html = new \DOMDocument();
+    $html = new DOMDocument();
 
     $items = 0;
 
@@ -219,8 +227,7 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
         }
         // Truncate the body and fix all unclosed tags.
         $body = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($desc), (int) $this->configuration['live_feeds_event_word_limit']);
-        // $body = trim($desc);
-        $tidy = new \tidy();
+        $tidy = new tidy();
         $body = $tidy->repairString($body, ['show-body-only' => 1]);
         // Build output string.
         $build['#live_feeds_cal_data']['#' . $items]['#day']['#markup'] = $day;
@@ -264,9 +271,9 @@ class LiveFeedsEvents extends BlockBase implements ContainerFactoryPluginInterfa
       $xml = simplexml_load_string($file_contents);
       return $xml;
     }
-    catch (RequestException $e) {
+    catch (GuzzleException $exception) {
       // Log the failed request to watchdog.
-      watchdog_exception('live_feeds', $e);
+      watchdog_exception('live_feeds', $exception);
     }
     return FALSE;
   }
