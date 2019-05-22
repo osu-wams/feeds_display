@@ -58,11 +58,11 @@ function osu_localist_nodeapi(&$node, $op) {
  * Parse the RSS and display the feed.
  *
  * @param string $feed_url
- *   A string containing he URL of the feed.
+ *   A string containing the URL of the feed.
  * @param int $num_items
  *   An integer containing the number of items to display.
  *
- * @return string
+ * @return string|void
  *   A string with the formatted HTML to display
  */
 function osu_localist_live_feeds_parser($feed_url, $num_items) {
@@ -168,7 +168,8 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
     $content .= '<strong>' . $title . '</strong></a></p>';
     $content .= $body . '&hellip;</div></div>';
   }
-  $content .= '<a href="' . substr($cal_link, 0, -4) . '">View the Entire Calendar</a>';
+  $full_cal_link = strpos($cal_link, 'xml', -4) ? substr($cal_link, 0, -4) : $cal_link;
+  $content .= '<a href="' . $full_cal_link . '">View the Entire Calendar</a>';
 
   // Restore error level.
   libxml_use_internal_errors($internalErrors);
