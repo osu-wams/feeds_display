@@ -168,7 +168,7 @@ function osu_localist_live_feeds_parser($feed_url, $num_items) {
     $content .= '<strong>' . $title . '</strong></a></p>';
     $content .= $body . '&hellip;</div></div>';
   }
-  $content .= '<a href="' . $cal_link . '">View the Entire Calendar</a>';
+  $content .= '<a href="' . substr($cal_link, 0, -4) . '">View the Entire Calendar</a>';
 
   // Restore error level.
   libxml_use_internal_errors($internalErrors);
