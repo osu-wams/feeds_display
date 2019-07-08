@@ -1,5 +1,5 @@
 {
-  "name": "osu/feeds_display",
+  "name": "osuwams/feeds_display",
   "description": "OSU Module to display feeds from Today.oregonstate.edu and events from Localist.",
   "minimum-stability": "stable",
   "license": "GPL-2.0",
