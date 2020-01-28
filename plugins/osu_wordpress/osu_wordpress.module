@@ -15,11 +15,11 @@
  *   A configuration array for this parser
  */
 function osu_wordpress_config() {
-  $feed_config = array(
-    'feed_type'   => 'osu_wordpress',
+  $feed_config = [
+    'feed_type' => 'osu_wordpress',
     'feed_title' => 'OSU WordPress',
-    'feed_url'    => 'http://blogs.oregonstate.edu/feed/rss2',
-  );
+    'feed_url' => 'http://blogs.oregonstate.edu/feed/rss2',
+  ];
   return $feed_config;
 }
 
@@ -47,10 +47,8 @@ function osu_wordpress_live_feeds_parser($feed_url, $num_items) {
     return;
   }
 
-  // Strip non-print characters from raw feed.
-  $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $result->data);
-  // $file_contents = $result->data;.
-  $xml = simplexml_load_string($file_contents);
+  $file_contents = $result->data;
+  $xml = simplexml_load_string($file_contents, "SimpleXMLElement", LIBXML_NOCDATA);
   $items = 0;
   $content = '';
 
@@ -62,7 +60,7 @@ function osu_wordpress_live_feeds_parser($feed_url, $num_items) {
     $date = date('M j, Y', strtotime($story->pubDate));
 
     $content .= '<div class="news-item">';
-    $content .= '<h3 class="title"><a href="' . $story->link . '">' . $story->title . '</a></h3>';
+    $content .= '<h3 class="title">' . l($story->title, $story->link) . '</h3>';
     $content .= '- <div class="date">' . $date . '</div> <br />';
     $content .= '<div class="news-body">' . $story->description . '</div></div>';
   }
