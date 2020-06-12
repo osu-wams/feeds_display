@@ -40,8 +40,7 @@ class GetFeed {
       $request = $this->httpClient->request('GET', $feed_url);
       $response = $request->getBody();
       $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
-      $xml = simplexml_load_string($file_contents);
-      return $xml;
+      return simplexml_load_string($file_contents);
     }
     catch (RequestException $e) {
       // Log the failed request to watchdog.
