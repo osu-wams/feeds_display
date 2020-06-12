@@ -9,7 +9,8 @@ use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Implements hook_help().
- */
+ *
+ * @noinspection PhpInconsistentReturnPointsInspection*/
 function live_feeds_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     // Main module help for the osu_feeds module.
@@ -18,8 +19,6 @@ function live_feeds_help($route_name, RouteMatchInterface $route_match) {
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Feeds Parser for the Module') . '</p>';
       return $output;
-
-    default:
   }
 }
 
@@ -31,18 +30,18 @@ function live_feeds_theme($existing, $type, $theme, $path) {
     'live_feeds_events' => [
       'variables' => [
         'live_feeds_event_link' => NULL,
-        'live_feeds_cal_data' => NULL,
-        'attributes' => [
+        'live_feeds_cal_data'   => NULL,
+        'attributes'            => [
           'class' => [
             'live-feeds-block',
           ],
         ],
       ],
     ],
-    'live_feeds_news' => [
+    'live_feeds_news'   => [
       'variables' => [
         'live_feeds_news_data' => NULL,
-        'attributes' => [
+        'attributes'           => [
           'class' => [
             'live-feeds-block',
           ],

@@ -1,9 +1,9 @@
 {
-  "name": "osuwams/feeds_display",
+  "name": "osu-wams/live_feeds",
+  "type": "drupal-module-osu",
   "description": "OSU Module to display feeds from Today.oregonstate.edu and events from Localist.",
   "minimum-stability": "stable",
-  "license": "GPL-2.0",
-  "type": "drupal-module-osu",
+  "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "Matthew Brabham",
