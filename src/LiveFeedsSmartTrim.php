@@ -2,12 +2,18 @@
 
 namespace Drupal\live_feeds;
 
+use Drupal\Core\Security\TrustedCallbackInterface;
+
 /**
  * Class LiveFeedsSmartLimit.
  *
  * @package Drupal\live_feeds
  */
-class LiveFeedsSmartTrim {
+class LiveFeedsSmartTrim implements TrustedCallbackInterface {
+
+  public static function trustedCallbacks() {
+    return ['liveFeedsLimit'];
+  }
 
   /**
    * Takes a long string and truncates it after a number of words.

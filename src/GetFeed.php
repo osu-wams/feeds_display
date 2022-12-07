@@ -2,6 +2,7 @@
 
 namespace Drupal\live_feeds;
 
+use Drupal\Core\Security\TrustedCallbackInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 
@@ -10,7 +11,7 @@ use GuzzleHttp\Exception\RequestException;
  *
  * @package Drupal\live_feeds
  */
-class GetFeed {
+class GetFeed implements TrustedCallbackInterface {
 
   /**
    * The Guzzle HTTP Client.
@@ -24,6 +25,10 @@ class GetFeed {
    */
   public function __construct(ClientInterface $httpClient) {
     $this->httpClient = $httpClient;
+  }
+
+  public static function trustedCallbacks() {
+    return ['getFeed'];
   }
 
   /**
