@@ -1,6 +1,6 @@
 {
   "name": "osu-wams/live_feeds",
-  "type": "drupal-module-osu",
+  "type": "drupal-custom-module",
   "description": "Allows showing RSS feeds from OSU sources in a site.",
   "minimum-stability": "stable",
   "license": "GPL-2.0-or-later",
