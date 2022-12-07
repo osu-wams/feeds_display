@@ -7,7 +7,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 
 /**
- * Class GetFeed.
+ * Simple class to provide functions for requesting RSS feeds.
  *
  * @package Drupal\live_feeds
  */
@@ -18,7 +18,7 @@ class GetFeed implements TrustedCallbackInterface {
    *
    * @var \GuzzleHttp\Client
    */
-  protected $httpClient;
+  private $httpClient;
 
   /**
    * Constructor.

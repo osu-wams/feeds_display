@@ -8,9 +8,8 @@ use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
 use Drupal\date_ap_style\ApStyleDateFormatter;
+use Drupal\live_feeds\GetFeed;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -22,13 +21,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface {
-
-  /**
-   * The Guzzle Client.
-   *
-   * @var \GuzzleHttp\Client
-   */
-  private $httpClient;
 
   /**
    * The Smart Trim.
@@ -44,6 +36,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   private ApStyleDateFormatter $apStyleDateFormatter;
 
+  /**
+   * @var \Drupal\live_feeds\GetFeed
+   */
+  private GetFeed $getFeed;
+
 
   /**
    * Construct.
@@ -54,22 +51,23 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    *   The plugin_id for the plugin instance.
    * @param string $plugin_definition
    *   The plugin implementation definition.
-   * @param \GuzzleHttp\ClientInterface $http_client
-   *   The HTTP Client.
    * @param \Drupal\live_feeds\LiveFeedsSmartTrim $live_feeds_smart_trim
    *   The Live Feeds trimmer.
+   * @param \Drupal\live_feeds\GetFeed $getFeed
+   *   Service to retrieve RSS feeds.
+   * @param \Drupal\date_ap_style\ApStyleDateFormatter $apStyleDateFormatter
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    ClientInterface $http_client,
     LiveFeedsSmartTrim $live_feeds_smart_trim,
+    GetFeed $getFeed,
     ApStyleDateFormatter $apStyleDateFormatter,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->httpClient = $http_client;
     $this->liveFeedsSmartTrim = $live_feeds_smart_trim;
+    $this->getFeed = $getFeed;
     $this->apStyleDateFormatter = $apStyleDateFormatter;
   }
 
@@ -81,8 +79,8 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('http_client'),
       $container->get('live_feeds.live_feeds_smart_trim'),
+      $container->get('live_feeds.live_feed'),
       $container->get('date_ap_style.formatter')
     );
   }
@@ -125,10 +123,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $form['live_feeds_news_word_limit'] = [
       '#type' => 'number',
       '#title' => $this->t('Word Limit'),
-      '#description' => $this->t('Enter a number to limit the number of words are displayed for each item.'),
+      '#description' => $this->t('Enter a number to limit the number of words are displayed for each item. A value greater than 20 will use the teaser from the RSS feed.'),
       '#default_value' => $this->configuration['live_feeds_news_word_limit'],
       '#weight' => '3',
       '#min' => 5,
+      '#max' => 30,
       '#required' => TRUE,
     ];
 
@@ -149,15 +148,15 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function build() {
     $build = [];
-
+    $word_limit = (int) $this->configuration['live_feeds_news_word_limit'];
     $items = 0;
     $build['#markup'] = '';
     // $xml = simplexml_load_string($file_contents);
-    $xml = $this->parseFeed($this->configuration['live_feeds_news_link']);
+    $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_news_link']));
     if ($xml !== FALSE) {
       // Need this to parse the description.
       $html = new \DOMDocument('1.0', 'UTF-8');
-      $internalErrors = libxml_use_internal_errors(TRUE);
+      libxml_use_internal_errors(TRUE);
       foreach ($xml->channel->item as $story) {
         if (++$items > (int) $this->configuration['live_feeds_items_total']) {
           break;
@@ -177,11 +176,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         $build['#live_feeds_news_data']['#' . $items]['#news_date'] = $pub_date;
 
         // Display teaser if there is one, else truncate body.
-        if (isset($teaser)) {
+        if (isset($teaser) && $word_limit > 20) {
           $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $teaser;
         }
         else {
-          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), 20);
+          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), $word_limit);
         }
       }
       libxml_clear_errors();
@@ -198,30 +197,6 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     // Setting max age to 5 minutes. This is needed or it caches indefinitely.
     $build['#cache']['max-age'] = 300;
     return $build;
-  }
-
-  /**
-   * Get the feed data from outside the site.
-   *
-   * @param string $feed
-   *   URL of the Feeds.
-   *
-   * @return mixed
-   *   XML of the string data.
-   */
-  private function parseFeed($feed) {
-    // Try to request the feed.
-    try {
-      $request = $this->httpClient->request('GET', $feed);
-      $response = $request->getBody();
-      $file_contents = preg_replace('/[^[:print:]\r\n]/', '', $response);
-      return simplexml_load_string($file_contents);
-    }
-    catch (RequestException $e) {
-      // Log the failed request to watchdog.
-      watchdog_exception('live_feeds', $e);
-    }
-    return FALSE;
   }
 
 }
