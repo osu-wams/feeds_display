@@ -1,26 +1,20 @@
 {
   "name": "osu-wams/live_feeds",
   "type": "drupal-module-osu",
-  "description": "OSU Module to display feeds from Today.oregonstate.edu and events from Localist.",
+  "description": "Allows showing RSS feeds from OSU sources in a site.",
   "minimum-stability": "stable",
   "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "Matthew Brabham",
       "email": "matthew.brabham@oregonstate.edu"
-    },
-    {
-      "name": "Liv Vitale",
-      "email": "liv.vitale@oregonstate.edu"
-    },
-    {
-      "name": "Mauricio Cordoba",
-      "email": "mauricio.cordoba@oregonstate.edu"
     }
   ],
   "require": {
     "ext-dom": "*",
     "ext-simplexml": "*",
-    "ext-tidy": "*"
+    "ext-tidy": "*",
+    "ext-libxml": "*",
+    "drupal/date_ap_style": "^1.0"
   }
 }
