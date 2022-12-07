@@ -27,27 +27,31 @@
  * @ingroup themeable
  */
 #}
-<div{{ attributes }}>
-    {{ title_prefix }}
-    {% if label %}
-        <h2{{ title_attributes }}>{{ label }}</h2>
-    {% endif %}
-    {{ title_suffix }}
-    {% block content %}
-        {{ content }}
-        {% for item in live_feeds_news_data %}
-            <div class="news-item">
-                {{ item['#news_thumb'] }}
-                <h3 class="title">
-                    {{ item['#news_story_link'] }}
-                </h3>
-                <div class="date">
-                    {{ item['#news_date'] }}
-                </div>
-                <div class="news-body">
-                    {{ item['#news_teaser'] }}
-                </div>
-            </div>
-        {% endfor %}
-    {% endblock %}
+<div{{ attributes.addCLass('live-feeds-news').removeAttribute('region')}}>
+  {{ title_prefix }}
+  {% if label %}
+    <h2{{ title_attributes }}>{{ label }}</h2>
+  {% endif %}
+  {{ title_suffix }}
+  {% block content %}
+    {{ content }}
+    {% for item in live_feeds_news_data %}
+      <div class="news-item">
+        <div class="news-item__image">
+          {{ item['#news_thumb'] }}
+        </div>
+        <div class="news-item__data_wrapper">
+          <h3 class="news-item__title">
+            {{ item['#news_story_link'] }}
+          </h3>
+          <div class="news-item__date">
+            {{ item['#news_date'] }}
+          </div>
+          <div class="news-item__body">
+            {{ item['#news_teaser'] }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endblock %}
 </div>

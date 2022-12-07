@@ -2,12 +2,12 @@
 
 namespace Drupal\live_feeds\Plugin\Block;
 
-use DOMDocument;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
+use Drupal\date_ap_style\ApStyleDateFormatter;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
@@ -24,18 +24,26 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface {
 
   /**
-   * GuzzleHttp\Client definition.
+   * The Guzzle Client.
    *
    * @var \GuzzleHttp\Client
    */
-  protected $httpClient;
+  private $httpClient;
 
   /**
-   * Drupal\live_feeds\LiveFeedsSmartTrim definition.
+   * The Smart Trim.
    *
    * @var \Drupal\live_feeds\LiveFeedsSmartTrim
    */
-  protected $liveFeedsSmartTrim;
+  private $liveFeedsSmartTrim;
+
+  /**
+   * The AP Style date.
+   *
+   * @var \Drupal\date_ap_style\ApStyleDateFormatter
+   */
+  private ApStyleDateFormatter $apStyleDateFormatter;
+
 
   /**
    * Construct.
@@ -56,11 +64,13 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $plugin_id,
     $plugin_definition,
     ClientInterface $http_client,
-    LiveFeedsSmartTrim $live_feeds_smart_trim
+    LiveFeedsSmartTrim $live_feeds_smart_trim,
+    ApStyleDateFormatter $apStyleDateFormatter,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->httpClient = $http_client;
     $this->liveFeedsSmartTrim = $live_feeds_smart_trim;
+    $this->apStyleDateFormatter = $apStyleDateFormatter;
   }
 
   /**
@@ -72,7 +82,8 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       $plugin_id,
       $plugin_definition,
       $container->get('http_client'),
-      $container->get('live_feeds.live_feeds_smart_trim')
+      $container->get('live_feeds.live_feeds_smart_trim'),
+      $container->get('date_ap_style.formatter')
     );
   }
 
@@ -81,10 +92,10 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function defaultConfiguration() {
     return [
-      'live_feeds_news_link' => '',
-      'live_feeds_items_total' => $this->t('5'),
-      'live_feeds_news_word_limit' => $this->t('30'),
-    ] + parent::defaultConfiguration();
+        'live_feeds_news_link' => '',
+        'live_feeds_items_total' => $this->t('5'),
+        'live_feeds_news_word_limit' => $this->t('30'),
+      ] + parent::defaultConfiguration();
 
   }
 
@@ -140,60 +151,30 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     $build = [];
 
     $items = 0;
-    $thumb = '';
-    $date_text = '';
-    $body = '';
     $build['#markup'] = '';
     // $xml = simplexml_load_string($file_contents);
     $xml = $this->parseFeed($this->configuration['live_feeds_news_link']);
     if ($xml !== FALSE) {
       // Need this to parse the description.
-      $html = new DOMDocument();
-
+      $html = new \DOMDocument('1.0', 'UTF-8');
+      $internalErrors = libxml_use_internal_errors(TRUE);
       foreach ($xml->channel->item as $story) {
         if (++$items > (int) $this->configuration['live_feeds_items_total']) {
           break;
         }
-
+        unset($teaser);
         // Parse the description into HTML divs and look for specific classes.
-        $html->loadHTML($story->description);
-        foreach ($html->getElementsByTagName('div') as $div) {
-          /** @var \DOMElement $div */
-          $class = $div->getAttribute('class');
+        $html->loadHTML(mb_convert_encoding($story->description, 'HTML-ENTITIES', 'UTF-8'));
+        $thumb = (string) $story->enclosure['url'];
+        $date_text = $story->pubDate;
+        $teaser = $html->getElementsByTagName('div')->item(0)->nodeValue;
+        $body = $html->getElementsByTagName('div')->item(1)->nodeValue;
+        $pub_date = $this->apStyleDateFormatter->formatTimestamp(strtotime($date_text), ['always_display_year' => TRUE]);
 
-          // Get the Date.
-          if (strpos($class, 'field-field-date')) {
-            $date_text = $div->getElementsByTagName('span')->item(0)->nodeValue;
-          }
-
-          // Get the thumbnail URL.
-          elseif (strpos($class, 'field-field-thumbnail')) {
-            $img = $div->getElementsByTagName('img')->item(0);
-            // We want to preserve all of the html for the img tag.
-            $thumb = str_replace('http://', '//', $html->saveXML($img));
-          }
-
-          // Get the teaser.
-          elseif (strpos($class, 'field-field-teaser')) {
-            $teaser = utf8_decode($div->getElementsByTagName('p')
-              ->item(0)->nodeValue);
-          }
-
-          // Get the body.
-          elseif (strpos($class, 'field-field-body')) {
-            if (isset($div->getElementsByTagName('div')->item(2)->nodeValue)) {
-              $body = mb_convert_encoding($div->getElementsByTagName('div')
-                ->item(2)->nodeValue, "ISO_8859-1", "UTF-8");
-            }
-          }
-        }
-        /*
-         * Pass the data to Twig.
-         */
-        $build['#live_feeds_news_data']['#' . $items]['#news_thumb']['#markup'] = $thumb;
+        $build['#live_feeds_news_data']['#' . $items]['#news_thumb']['#markup'] = '<img src="' . $thumb . '" width="75" height="75" alt="OSU News Release" />';
         $url = Url::fromUri($story->link);
         $build['#live_feeds_news_data']['#' . $items]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
-        $build['#live_feeds_news_data']['#' . $items]['#news_date'] = date('M j, Y', strtotime($date_text));
+        $build['#live_feeds_news_data']['#' . $items]['#news_date'] = $pub_date;
 
         // Display teaser if there is one, else truncate body.
         if (isset($teaser)) {
@@ -203,6 +184,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
           $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), 20);
         }
       }
+      libxml_clear_errors();
       $build['#theme'] = 'live_feeds_news';
       $build['#attached'] = [
         'library' => [
