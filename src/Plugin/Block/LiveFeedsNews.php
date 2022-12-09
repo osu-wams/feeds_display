@@ -170,17 +170,19 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         $body = $html->getElementsByTagName('div')->item(1)->nodeValue;
         $pub_date = $this->apStyleDateFormatter->formatTimestamp(strtotime($date_text), ['always_display_year' => TRUE]);
 
-        $build['#live_feeds_news_data']['#' . $items]['#news_thumb']['#markup'] = '<img src="' . $thumb . '" width="75" height="75" alt="OSU News Release" />';
+        $build['#live_feeds_news_data']['#' . $items]['#news_thumb']['#markup'] = '<img src="' . $thumb . '" width="75" alt="OSU News Release" />';
         $url = Url::fromUri($story->link);
+        $read_more_link = Link::fromTextAndUrl($this->t('Read full story'), $url)
+          ->toString();
         $build['#live_feeds_news_data']['#' . $items]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
         $build['#live_feeds_news_data']['#' . $items]['#news_date'] = $pub_date;
 
         // Display teaser if there is one, else truncate body.
         if (isset($teaser) && $word_limit > 20) {
-          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $teaser;
+          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $teaser . $read_more_link;
         }
         else {
-          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), $word_limit);
+          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), $word_limit) . ' ' . $read_more_link;
         }
       }
       libxml_clear_errors();

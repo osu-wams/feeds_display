@@ -25,7 +25,15 @@
 .live-feeds-news .news-item .news-item__image {
   clear: left;
   float: left;
-  margin-right: 10px;
+  margin-right: .5rem;
+  margin-top: .5rem;
+}
+
+.live-feeds-news .news-item .news-item__image img {
+  aspect-ratio: 1 / 1;
+  border-radius: .25rem;
+  object-fit: cover;
+  width: 75px;
 }
 
 .live-feeds-news .news-item .news-item__date {
@@ -33,7 +41,6 @@
   display: inline;
   font-size: 0.93em;
   font-style: italic;
-  text-wrap: avoid;
   white-space: nowrap;
 }
 

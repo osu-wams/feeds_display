@@ -29,9 +29,9 @@ class LiveFeedsSmartTrim implements TrustedCallbackInterface {
   public function liveFeedsLimit($stringBig, $wordLimit) {
     $string = explode(' ', $stringBig);
     if (count($string) > $wordLimit) {
-      return implode(' ', array_slice($string, 0, $wordLimit)) . " ...";
+      return implode(' ', array_slice($string, 0, $wordLimit)) . " &hellip;";
     }
-    return implode(' ', $string) . " ...";
+    return implode(' ', $string) . " &hellip;";
   }
 
 }
