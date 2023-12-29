@@ -37,10 +37,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
   private ApStyleDateFormatter $apStyleDateFormatter;
 
   /**
+   * The Live Feeds Service.
+   *
    * @var \Drupal\live_feeds\GetFeed
    */
   private GetFeed $getFeed;
-
 
   /**
    * Construct.
@@ -56,6 +57,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    * @param \Drupal\live_feeds\GetFeed $getFeed
    *   Service to retrieve RSS feeds.
    * @param \Drupal\date_ap_style\ApStyleDateFormatter $apStyleDateFormatter
+   *   The Date AP Style Formatter.
    */
   public function __construct(
     array $configuration,
@@ -90,10 +92,10 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function defaultConfiguration() {
     return [
-        'live_feeds_news_link' => '',
-        'live_feeds_items_total' => $this->t('5'),
-        'live_feeds_news_word_limit' => $this->t('30'),
-      ] + parent::defaultConfiguration();
+      'live_feeds_news_link' => '',
+      'live_feeds_items_total' => $this->t('5'),
+      'live_feeds_news_word_limit' => $this->t('30'),
+    ] + parent::defaultConfiguration();
 
   }
 
@@ -156,6 +158,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     if ($xml !== FALSE) {
       // Need this to parse the description.
       $html = new \DOMDocument('1.0', 'UTF-8');
+      $teaser = '';
       libxml_use_internal_errors(TRUE);
       foreach ($xml->channel->item as $story) {
         if (++$items > (int) $this->configuration['live_feeds_items_total']) {

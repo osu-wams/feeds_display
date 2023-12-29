@@ -15,6 +15,6 @@
     "ext-simplexml": "*",
     "ext-tidy": "*",
     "ext-libxml": "*",
-    "drupal/date_ap_style": "^1.0"
+    "drupal/date_ap_style": "^1.0 | ^2.0"
   }
 }

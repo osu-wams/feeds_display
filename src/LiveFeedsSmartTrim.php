@@ -11,6 +11,9 @@ use Drupal\Core\Security\TrustedCallbackInterface;
  */
 class LiveFeedsSmartTrim implements TrustedCallbackInterface {
 
+  /**
+   * {@inheritDoc}
+   */
   public static function trustedCallbacks() {
     return ['liveFeedsLimit'];
   }
