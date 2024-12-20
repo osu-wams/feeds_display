@@ -4,6 +4,7 @@ namespace Drupal\live_feeds;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Security\TrustedCallbackInterface;
+use Drupal\live_feeds\Exception\FeedsDisplayParserException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 
@@ -66,9 +67,6 @@ class GetFeed implements TrustedCallbackInterface {
    * @return \SimpleXMLElement|false
    *   The feed as a SimpleXMLElement, or FALSE on failure.
    *
-   * @throws \Exception
-   *   If the feed cannot be loaded.
-   *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function getFeed($feed_url) {
@@ -78,12 +76,18 @@ class GetFeed implements TrustedCallbackInterface {
       $response = $http_response->getBody();
 
       return $this->parseResponseToXml($response);
-
     }
     catch (RequestException $e) {
       // Log the failed request to watchdog.
       $this->logger->get('live_feeds')
         ->error('Failed request for "@feed": @message', [
+          '@feed' => $feed_url,
+          '@message' => $e->getMessage(),
+        ]);
+    }
+    catch (FeedsDisplayParserException $e) {
+      $this->logger->get('live_feeds')
+        ->error('Failed to parse the feed: "@feed": @message', [
           '@feed' => $feed_url,
           '@message' => $e->getMessage(),
         ]);
@@ -101,7 +105,7 @@ class GetFeed implements TrustedCallbackInterface {
    * @return \SimpleXMLElement|null
    *   The parsed feed as a SimpleXMLElement, or NULL on failure.
    *
-   * @throws \Exception
+   * @throws \Drupal\live_feeds\Exception\FeedsDisplayParserException
    *   If the feed cannot be loaded.
    */
   private function parseResponseToXml(string $response): ?\SimpleXMLElement {
@@ -109,7 +113,7 @@ class GetFeed implements TrustedCallbackInterface {
     $feedXml = simplexml_load_string($cleaned_response);
 
     if ($feedXml === FALSE) {
-      throw new \Exception('Failed to parse the feed');
+      throw new FeedsDisplayParserException('Failed to parse the feed');
     }
 
     return $feedXml;
