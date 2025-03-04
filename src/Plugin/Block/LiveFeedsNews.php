@@ -96,7 +96,6 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       'live_feeds_items_total' => $this->t('5'),
       'live_feeds_news_word_limit' => $this->t('30'),
     ] + parent::defaultConfiguration();
-
   }
 
   /**
@@ -120,6 +119,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       '#default_value' => $this->configuration['live_feeds_items_total'],
       '#weight' => '2',
       '#min' => 1,
+      '#max' => 10,
       '#required' => TRUE,
     ];
     $form['live_feeds_news_word_limit'] = [
@@ -151,42 +151,28 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
   public function build() {
     $build = [];
     $word_limit = (int) $this->configuration['live_feeds_news_word_limit'];
-    $items = 0;
+    $max_items = (int) $this->configuration['live_feeds_items_total'];
+    $current_item = 0;
     $build['#markup'] = '';
-    // $xml = simplexml_load_string($file_contents);
     $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_news_link']));
     if ($xml !== FALSE) {
       // Need this to parse the description.
-      $html = new \DOMDocument('1.0', 'UTF-8');
-      $teaser = '';
       libxml_use_internal_errors(TRUE);
       foreach ($xml->channel->item as $story) {
-        if (++$items > (int) $this->configuration['live_feeds_items_total']) {
+        if (++$current_item > $max_items) {
           break;
         }
-        unset($teaser);
-        // Parse the description into HTML divs and look for specific classes.
-        $html->loadHTML(mb_convert_encoding($story->description, 'HTML-ENTITIES', 'UTF-8'));
+        $body = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($story->description), $word_limit);
         $thumb = (string) $story->enclosure['url'];
         $date_text = $story->pubDate;
-        $teaser = $html->getElementsByTagName('div')->item(0)->nodeValue;
-        $body = $html->getElementsByTagName('div')->item(1)->nodeValue;
         $pub_date = $this->apStyleDateFormatter->formatTimestamp(strtotime($date_text), ['always_display_year' => TRUE]);
-
-        $build['#live_feeds_news_data']['#' . $items]['#news_thumb']['#markup'] = '<img src="' . $thumb . '" width="75" alt="OSU News Release" />';
+        $build['#live_feeds_news_data']['#' . $current_item]['#news_thumb']['#markup'] = '<img src="' . $thumb . '" width="75" alt="OSU News Release" />';
         $url = Url::fromUri($story->link);
         $read_more_link = Link::fromTextAndUrl($this->t('Read full story'), $url)
           ->toString();
-        $build['#live_feeds_news_data']['#' . $items]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
-        $build['#live_feeds_news_data']['#' . $items]['#news_date'] = $pub_date;
-
-        // Display teaser if there is one, else truncate body.
-        if (isset($teaser) && $word_limit > 20) {
-          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $teaser . $read_more_link;
-        }
-        else {
-          $build['#live_feeds_news_data']['#' . $items]['#news_teaser']['#markup'] = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($body), $word_limit) . ' ' . $read_more_link;
-        }
+        $build['#live_feeds_news_data']['#' . $current_item]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
+        $build['#live_feeds_news_data']['#' . $current_item]['#news_date'] = $pub_date;
+        $build['#live_feeds_news_data']['#' . $current_item]['#news_teaser']['#markup'] = $body . ' ' . $read_more_link;
       }
       libxml_clear_errors();
       $build['#theme'] = 'live_feeds_news';
