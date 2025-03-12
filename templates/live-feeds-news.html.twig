@@ -27,7 +27,7 @@
  * @ingroup themeable
  */
 #}
-<div{{ attributes.addCLass('live-feeds-news').removeAttribute('region')}}>
+<div{{ attributes.addCLass('live-feeds-news').removeAttribute('region') }}>
   {{ title_prefix }}
   {% if label %}
     <h2{{ title_attributes }}>{{ label }}</h2>
@@ -36,10 +36,13 @@
   {% block content %}
     {{ content }}
     {% for item in live_feeds_news_data %}
+      {% set news_thumb = item['#news_thumb']|render|striptags('<img><video><drupal-render-placeholder>')|trim is not empty %}
       <div class="news-item">
-        <div class="news-item__image">
-          {{ item['#news_thumb'] }}
-        </div>
+        {% if news_thumb %}
+          <div class="news-item__image">
+            {{ item['#news_thumb'] }}
+          </div>
+        {% endif %}
         <div class="news-item__data_wrapper">
           <h3 class="news-item__title">
             {{ item['#news_story_link'] }}

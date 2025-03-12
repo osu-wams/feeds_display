@@ -129,7 +129,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       '#default_value' => $this->configuration['live_feeds_news_word_limit'],
       '#weight' => '3',
       '#min' => 5,
-      '#max' => 30,
+      '#max' => 140,
       '#required' => TRUE,
     ];
 
@@ -158,6 +158,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
     if ($xml !== FALSE) {
       // Need this to parse the description.
       libxml_use_internal_errors(TRUE);
+      /** @var \SimpleXMLElement $story */
       foreach ($xml->channel->item as $story) {
         if (++$current_item > $max_items) {
           break;
@@ -166,11 +167,15 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         $thumb = (string) $story->enclosure['url'];
         $date_text = $story->pubDate;
         $pub_date = $this->apStyleDateFormatter->formatTimestamp(strtotime($date_text), ['always_display_year' => TRUE]);
-        $build['#live_feeds_news_data']['#' . $current_item]['#news_thumb']['#markup'] = '<img src="' . $thumb . '" width="75" alt="OSU News Release" />';
         $url = Url::fromUri($story->link);
         $read_more_link = Link::fromTextAndUrl($this->t('Read full story'), $url)
           ->toString();
-        $build['#live_feeds_news_data']['#' . $current_item]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
+        if ($thumb) {
+          $build['#live_feeds_news_data']['#' . $current_item]['#news_thumb']['#markup'] = '<img src="' . $thumb . '" width="75" alt="OSU News Release" />';
+        }
+        if ($url) {
+          $build['#live_feeds_news_data']['#' . $current_item]['#news_story_link'] = Link::fromTextAndUrl($story->title, $url);
+        }
         $build['#live_feeds_news_data']['#' . $current_item]['#news_date'] = $pub_date;
         $build['#live_feeds_news_data']['#' . $current_item]['#news_teaser']['#markup'] = $body . ' ' . $read_more_link;
       }
