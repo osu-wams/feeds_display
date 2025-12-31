@@ -30,8 +30,8 @@
     "drupal/date_ap_style": "^1.0 | ^2.0"
   },
   "require-dev": {
-    "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-    "squizlabs/php_codesniffer": "^3.11",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+    "squizlabs/php_codesniffer": "^3.13",
     "drupal/coder": "^8.3",
     "friendsoftwig/twigcs": "^6.5"
   },

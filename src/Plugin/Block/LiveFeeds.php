@@ -15,13 +15,13 @@ use Drupal\live_feeds\LiveFeedsSmartTrim;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides a 'Live Feeds News' block.
+ * Provides a 'Live Feeds' block.
  */
 #[Block(
-  id: 'live_feeds_news',
-  admin_label: new TranslatableMarkup('OSU Live Feeds News'),
+  id: 'live_feeds',
+  admin_label: new TranslatableMarkup('OSU Live Feeds'),
 )]
-class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface {
+class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterface {
 
   /**
    * The Smart Trim.
@@ -93,9 +93,9 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function defaultConfiguration() {
     return [
-      'live_feeds_news_link' => '',
+      'live_feeds_link' => '',
       'live_feeds_items_total' => $this->t('5'),
-      'live_feeds_news_word_limit' => $this->t('30'),
+      'live_feeds_word_limit' => $this->t('30'),
     ] + parent::defaultConfiguration();
   }
 
@@ -103,11 +103,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    * {@inheritdoc}
    */
   public function blockForm($form, FormStateInterface $form_state) {
-    $form['live_feeds_news_link'] = [
+    $form['live_feeds_link'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('News Feed URL'),
-      '#description' => $this->t('The RSS feed from the News Page.'),
-      '#default_value' => $this->configuration['live_feeds_news_link'],
+      '#title' => $this->t('Feed URL'),
+      '#description' => $this->t('The RSS feed URL.'),
+      '#default_value' => $this->configuration['live_feeds_link'],
       '#maxlength' => 256,
       '#size' => 64,
       '#weight' => '1',
@@ -123,11 +123,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
       '#max' => 10,
       '#required' => TRUE,
     ];
-    $form['live_feeds_news_word_limit'] = [
+    $form['live_feeds_word_limit'] = [
       '#type' => 'number',
       '#title' => $this->t('Word Limit'),
       '#description' => $this->t('Enter a number to limit the number of words are displayed for each item. A value greater than 20 will use the teaser from the RSS feed.'),
-      '#default_value' => $this->configuration['live_feeds_news_word_limit'],
+      '#default_value' => $this->configuration['live_feeds_word_limit'],
       '#weight' => '3',
       '#min' => 5,
       '#max' => 140,
@@ -141,9 +141,9 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    * {@inheritdoc}
    */
   public function blockSubmit($form, FormStateInterface $form_state) {
-    $this->configuration['live_feeds_news_link'] = $form_state->getValue('live_feeds_news_link');
+    $this->configuration['live_feeds_link'] = $form_state->getValue('live_feeds_link');
     $this->configuration['live_feeds_items_total'] = $form_state->getValue('live_feeds_items_total');
-    $this->configuration['live_feeds_news_word_limit'] = $form_state->getValue('live_feeds_news_word_limit');
+    $this->configuration['live_feeds_word_limit'] = $form_state->getValue('live_feeds_word_limit');
   }
 
   /**
@@ -151,11 +151,11 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
    */
   public function build() {
     $build = [];
-    $word_limit = (int) $this->configuration['live_feeds_news_word_limit'];
+    $word_limit = (int) $this->configuration['live_feeds_word_limit'];
     $max_items = (int) $this->configuration['live_feeds_items_total'];
     $current_item = 0;
     $build['#markup'] = '';
-    $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_news_link']));
+    $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_link']));
     if ($xml !== FALSE) {
       // Need this to parse the description.
       libxml_use_internal_errors(TRUE);
@@ -173,7 +173,7 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
         $read_more_link = Link::fromTextAndUrl($this->t('Read full story'), $url)
           ->toString();
         if ($thumb) {
-          $build['#live_feeds_news_data']['#' . $current_item]['#news_thumb'] = [
+          $build['#live_feeds_data']['#' . $current_item]['#live_feeds_thumb'] = [
             '#theme' => 'image',
             '#uri' => $thumb,
             '#width' => 75,
@@ -181,16 +181,16 @@ class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInterface
           ];
         }
         if ($url) {
-          $build['#live_feeds_news_data']['#' . $current_item]['#news_story_link'] = Link::fromTextAndUrl($story_title, $url);
+          $build['#live_feeds_data']['#' . $current_item]['#live_feeds_story_link'] = Link::fromTextAndUrl($story_title, $url);
         }
-        $build['#live_feeds_news_data']['#' . $current_item]['#news_date'] = $pub_date;
-        $build['#live_feeds_news_data']['#' . $current_item]['#news_teaser']['#markup'] = $body . ' ' . $read_more_link;
+        $build['#live_feeds_data']['#' . $current_item]['#live_feeds_date'] = $pub_date;
+        $build['#live_feeds_data']['#' . $current_item]['#live_feeds_teaser']['#markup'] = $body . ' ' . $read_more_link;
       }
       libxml_clear_errors();
-      $build['#theme'] = 'live_feeds_news';
+      $build['#theme'] = 'live_feeds';
       $build['#attached'] = [
         'library' => [
-          'live_feeds/live_feeds_news',
+          'live_feeds/live_feeds',
         ],
       ];
     }
