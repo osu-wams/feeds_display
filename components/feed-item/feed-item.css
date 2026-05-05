@@ -1,0 +1,51 @@
+/**
+ * @file feed-item.css
+ *  Provide style for the Feeds list Items.
+ */
+
+.live-feeds-item {
+  border-bottom: 1px dotted #888;
+  margin-bottom: 1.5em;
+  overflow: auto;
+  padding-bottom: 1em;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  h3.live-feeds-item__title {
+    color: #000;
+    display: inline;
+    font-size: 0.93em;
+    margin: 0;
+    padding: 0;
+  }
+
+  .live-feeds-item__image {
+    clear: left;
+    float: left;
+    margin-right: .5rem;
+    margin-top: .5rem;
+
+    img {
+      aspect-ratio: 1 / 1;
+      border-radius: .25rem;
+      height: auto;
+      object-fit: cover;
+      width: 75px;
+    }
+  }
+  .live-feeds-item__date {
+    color: #565656;
+    font-size: 0.93em;
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .live-feeds-item__teaser {
+    font-size: 0.93em;
+    margin-top: .2em;
+  }
+}
+

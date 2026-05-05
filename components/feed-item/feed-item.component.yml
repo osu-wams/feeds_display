@@ -1,0 +1,17 @@
+name: Feed Item
+slots:
+  title_link:
+    title: "Title Link"
+  thumbnail:
+    title: "Thumbnail"
+  teaser:
+    title: "Teaser"
+props:
+  type: object
+  properties:
+    date:
+      type: string
+      title: "Publication Date"
+    timestamp:
+      type: string
+      title: "Publication Timestamp"
