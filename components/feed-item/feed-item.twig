@@ -1,0 +1,13 @@
+{# feed-item.twig #}
+<div class="live-feeds-item">
+  {% if thumbnail %}
+    <div class="live-feeds-item__image">
+      {{ thumbnail }}
+    </div>
+  {% endif %}
+  <div class="live-feeds-item__wrapper">
+    <h3 class="live-feeds-item__title">{{ title_link }}</h3>
+    <time class="live-feeds-item__date" datetime="{{ timestamp }}">{{ date }}</time>
+    <div class="live-feeds-item__teaser">{{ teaser }}</div>
+  </div>
+</div>

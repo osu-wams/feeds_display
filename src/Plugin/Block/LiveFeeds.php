@@ -2,8 +2,10 @@
 
 namespace Drupal\live_feeds\Plugin\Block;
 
+use Drupal\Component\Utility\Xss;
 use Drupal\Core\Block\Attribute\Block;
 use Drupal\Core\Block\BlockBase;
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -20,8 +22,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Block(
   id: 'live_feeds',
   admin_label: new TranslatableMarkup('OSU Live Feeds'),
+  category: new TranslatableMarkup('OSU')
 )]
-class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterface {
+final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterface {
 
   /**
    * The Smart Trim.
@@ -93,10 +96,10 @@ class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterface {
    */
   public function defaultConfiguration() {
     return [
-      'live_feeds_link' => '',
-      'live_feeds_items_total' => $this->t('5'),
-      'live_feeds_word_limit' => $this->t('30'),
-    ] + parent::defaultConfiguration();
+        'live_feeds_link' => '',
+        'live_feeds_items_total' => $this->t('5'),
+        'live_feeds_word_limit' => $this->t('30'),
+      ] + parent::defaultConfiguration();
   }
 
   /**
@@ -150,56 +153,57 @@ class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function build() {
-    $build = [];
     $word_limit = (int) $this->configuration['live_feeds_word_limit'];
     $max_items = (int) $this->configuration['live_feeds_items_total'];
-    $current_item = 0;
-    $build['#markup'] = '';
     $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_link']));
-    if ($xml !== FALSE) {
-      // Need this to parse the description.
-      libxml_use_internal_errors(TRUE);
-      /** @var \SimpleXMLElement $story */
-      foreach ($xml->channel->item as $story) {
-        if (++$current_item > $max_items) {
-          break;
-        }
-        $story_title = (string) $story->title;
-        $body = $this->liveFeedsSmartTrim->liveFeedsLimit(trim($story->description), $word_limit);
-        $thumb = (string) $story->enclosure['url'];
-        $date_text = $story->pubDate;
-        $pub_date = $this->apStyleDateFormatter->formatTimestamp(strtotime($date_text), ['always_display_year' => TRUE]);
-        $url = Url::fromUri((string) $story->link);
-        $read_more_link = Link::fromTextAndUrl($this->t('Read full story'), $url)
-          ->toString();
-        if ($thumb) {
-          $build['#live_feeds_data']['#' . $current_item]['#live_feeds_thumb'] = [
-            '#theme' => 'image',
-            '#uri' => $thumb,
-            '#width' => 75,
-            '#alt' => '',
-          ];
-        }
-        if ($url) {
-          $build['#live_feeds_data']['#' . $current_item]['#live_feeds_story_link'] = Link::fromTextAndUrl($story_title, $url);
-        }
-        $build['#live_feeds_data']['#' . $current_item]['#live_feeds_date'] = $pub_date;
-        $build['#live_feeds_data']['#' . $current_item]['#live_feeds_teaser']['#markup'] = $body . ' ' . $read_more_link;
+    if ($xml === FALSE) {
+      return ['#markup' => 'There was an error loading the feed.'];
+    }
+    $items = [];
+    $current_count = 0;
+    /** @var \SimpleXMLElement $item */
+    foreach ($xml->channel->item as $item) {
+      if (++$current_count > $max_items) {
+        break;
       }
-      libxml_clear_errors();
-      $build['#theme'] = 'live_feeds';
-      $build['#attached'] = [
-        'library' => [
-          'live_feeds/live_feeds',
+      $url = Url::fromUri((string) $item->link);
+      $item_title_link = Link::fromTextAndUrl((string) $item->title, $url)
+        ->toRenderable();
+      $read_more = Link::fromTextAndUrl($this->t('Read full story'), $url)
+        ->toString();
+      $thumb_url = (string) $item->enclosure['url'] ?? '';
+      $filtered_description = Xss::filter($this->liveFeedsSmartTrim->liveFeedsLimit(trim((string) $item->description), $word_limit));
+      $teaser = $filtered_description . ' ' . $read_more;
+      $pub_date = $this->apStyleDateFormatter->formatTimestamp(strtotime((string) $item->pubDate), ['always_display_year' => TRUE]);
+      $time_stamp = DrupalDateTime::createFromTimestamp(strtotime((string) $item->pubDate))
+        ->format('c');
+      $items[] = [
+        'title_link' => $item_title_link,
+        'date' => $pub_date,
+        'timestamp' => $time_stamp,
+        'teaser' => [
+          '#markup' => $teaser,
         ],
+        'thumbnail' => $thumb_url ? [
+          '#theme' => 'image',
+          '#uri' => $thumb_url,
+          '#alt' => '',
+          '#width' => 75,
+          '#attributes' => ['class' => ['live-feeds-item__image']],
+        ] : [],
       ];
     }
-    else {
-      $build['#markup'] .= "There was an error loading the feed.";
-    }
-    // Setting max age to 5 minutes. This is needed or it caches indefinitely.
-    $build['#cache']['max-age'] = 300;
-    return $build;
+    return [
+      '#type' => 'component',
+      '#component' => 'live_feeds:feed-list',
+      '#props' => [
+        'wrapper_class' => 'live-feeds',
+        'items' => $items,
+      ],
+      '#cache' => [
+        'max-age' => 300,
+      ],
+    ];
   }
 
 }

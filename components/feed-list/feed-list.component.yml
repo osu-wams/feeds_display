@@ -1,0 +1,12 @@
+name: Feed List
+props:
+  type: object
+  properties:
+    wrapper_class:
+      type: string
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          date: { type: string }

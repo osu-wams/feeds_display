@@ -1,9 +1,0 @@
-live_feeds:
-  css:
-    theme:
-      css/live_feeds.css: {}
-
-live_feeds_news:
-  css:
-    theme:
-      css/live_feeds_news.css: {}
