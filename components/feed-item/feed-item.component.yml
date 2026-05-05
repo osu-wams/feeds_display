@@ -15,4 +15,3 @@ props:
     timestamp:
       type: string
       title: "Publication Timestamp"
-

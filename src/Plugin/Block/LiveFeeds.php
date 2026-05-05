@@ -96,10 +96,10 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
    */
   public function defaultConfiguration() {
     return [
-        'live_feeds_link' => '',
-        'live_feeds_items_total' => $this->t('5'),
-        'live_feeds_word_limit' => $this->t('30'),
-      ] + parent::defaultConfiguration();
+      'live_feeds_link' => '',
+      'live_feeds_items_total' => $this->t('5'),
+      'live_feeds_word_limit' => $this->t('30'),
+    ] + parent::defaultConfiguration();
   }
 
   /**
