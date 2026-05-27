@@ -53,15 +53,6 @@ class GetFeed implements TrustedCallbackInterface {
    * Get the RSS feed from given URL.
    *
    * @param string $feed_url
-   *   The Feed url will attempt to retrieve.
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   */
-
-  /**
-   * Get the RSS feed from given URL.
-   *
-   * @param string $feed_url
    *   The feed URL to retrieve.
    *
    * @return \SimpleXMLElement|false
