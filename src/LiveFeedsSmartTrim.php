@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\live_feeds;
 
 use Drupal\Core\Security\TrustedCallbackInterface;

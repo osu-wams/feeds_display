@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\live_feeds\Plugin\Block;
 
 use Drupal\Component\Utility\Xss;
@@ -99,6 +101,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       'live_feeds_news_link' => '',
       'live_feeds_items_total' => $this->t('5'),
       'live_feeds_news_word_limit' => $this->t('30'),
+      'live_feeds_news_display_mode' => 'default',
     ] + parent::defaultConfiguration();
   }
 
@@ -136,6 +139,17 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       '#max' => 140,
       '#required' => TRUE,
     ];
+    $form['live_feeds_news_display_mode'] = [
+      '#type' => 'select',
+      '#title' => 'View mode',
+      '#description' => $this->t('Select a different display of the news stories'),
+      '#default_value' => $this->configuration['live_feeds_news_display_mode'] ?? NULL,
+      '#weight' => '4',
+      '#options' => [
+        'list' => $this->t('List'),
+        'card' => $this->t('Cards'),
+      ],
+    ];
 
     return $form;
   }
@@ -147,6 +161,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
     $this->configuration['live_feeds_news_link'] = $form_state->getValue('live_feeds_news_link');
     $this->configuration['live_feeds_items_total'] = $form_state->getValue('live_feeds_items_total');
     $this->configuration['live_feeds_news_word_limit'] = $form_state->getValue('live_feeds_news_word_limit');
+    $this->configuration['live_feeds_news_display_mode'] = $form_state->getValue('live_feeds_news_display_mode');
   }
 
   /**
@@ -156,6 +171,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
     $word_limit = (int) $this->configuration['live_feeds_news_word_limit'];
     $max_items = (int) $this->configuration['live_feeds_items_total'];
     $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_news_link']));
+    $view_mode = $this->configuration['live_feeds_news_display_mode'];
     if ($xml === FALSE) {
       return ['#markup' => 'There was an error loading the feed.'];
     }
@@ -166,12 +182,32 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       if (++$current_count > $max_items) {
         break;
       }
+      if (is_countable($item->category) && count($item->category) > 0) {
+        $category = (string) $item->category[0];
+      }
       $url = Url::fromUri((string) $item->link);
       $item_title_link = Link::fromTextAndUrl((string) $item->title, $url)
         ->toRenderable();
       $read_more = Link::fromTextAndUrl($this->t('Read full story'), $url)
         ->toString();
       $thumb_url = (string) $item->enclosure['url'] ?? '';
+      switch ($view_mode) {
+        case 'card':
+          $thumb_size = 600;
+          $thumbnail = $thumb_url;
+          break;
+
+        default:
+          $thumb_size = 75;
+          $thumbnail = $thumb_url ? [
+            '#theme' => 'image',
+            '#uri' => $thumb_url,
+            '#alt' => '',
+            '#width' => $thumb_size,
+            '#attributes' => ['class' => ['news-item__image']],
+          ] : [];
+          break;
+      }
       $filtered_description = Xss::filter($this->liveFeedsSmartTrim->liveFeedsLimit(trim((string) $item->description), $word_limit));
       $teaser = $filtered_description . ' ' . $read_more;
       $pub_date = $this->apStyleDateFormatter->formatTimestamp(strtotime((string) $item->pubDate), ['always_display_year' => TRUE]);
@@ -184,26 +220,37 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
         'teaser' => [
           '#markup' => $teaser,
         ],
-        'thumbnail' => $thumb_url ? [
-          '#theme' => 'image',
-          '#uri' => $thumb_url,
-          '#alt' => '',
-          '#width' => 75,
-          '#attributes' => ['class' => ['news-item__image']],
-        ] : [],
+        'thumbnail' => $thumbnail,
+        'category' => $category ?? '',
       ];
     }
-    return [
-      '#type' => 'component',
-      '#component' => 'live_feeds:feed-list',
-      '#props' => [
-        'wrapper_class' => 'live-feeds live-feeds--news',
-        'items' => $items,
-      ],
-      '#cache' => [
-        'max-age' => 300,
-      ],
-    ];
+    switch ($view_mode) {
+      case 'card':
+        return [
+          '#type' => 'component',
+          '#component' => 'live_feeds:cards',
+          '#props' => [
+            'wrapper_class' => 'live-feeds live-feeds--news live-feeds--cards',
+            'items' => $items,
+          ],
+          '#cache' => [
+            'max-age' => 300,
+          ],
+        ];
+
+      default:
+        return [
+          '#type' => 'component',
+          '#component' => 'live_feeds:feed-list',
+          '#props' => [
+            'wrapper_class' => 'live-feeds live-feeds--news',
+            'items' => $items,
+          ],
+          '#cache' => [
+            'max-age' => 300,
+          ],
+        ];
+    }
   }
 
 }

@@ -1,0 +1,13 @@
+{#  cards.twig #}
+<div class="{{ wrapper_class }}">
+  {% for item in items %}
+    {{ include('live_feeds:card-item', {
+      date: item.date,
+      timestamp: item.timestamp,
+      title_link: item.title_link,
+      thumbnail: item.thumbnail,
+      teaser: item.teaser,
+      category: item.category
+    }, with_context = false) }}
+  {% endfor %}
+</div>

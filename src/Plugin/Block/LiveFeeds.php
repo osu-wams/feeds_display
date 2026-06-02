@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\live_feeds\Plugin\Block;
 
 use Drupal\Component\Utility\Xss;
