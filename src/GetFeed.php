@@ -66,7 +66,7 @@ class GetFeed implements TrustedCallbackInterface {
     // Try to request the feed.
     try {
       $http_response = $this->httpClient->request('GET', $feed_url);
-      $response = $http_response->getBody();
+      $response = $http_response->getBody()->__toString();
 
       return $this->parseResponseToXml($response);
     }
@@ -85,7 +85,6 @@ class GetFeed implements TrustedCallbackInterface {
           '@message' => $e->getMessage(),
         ]);
     }
-
     return FALSE;
   }
 
