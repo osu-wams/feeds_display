@@ -73,18 +73,16 @@ class GetFeed implements TrustedCallbackInterface {
     }
     catch (RequestException $e) {
       // Log the failed request to watchdog.
-      $this->logger->get('live_feeds')
-        ->error('Failed request for "@feed": @message', [
-          '@feed' => $feed_url,
-          '@message' => $e->getMessage(),
-        ]);
+      $this->logger->error('Failed request for "@feed": @message', [
+        '@feed' => $feed_url,
+        '@message' => $e->getMessage(),
+      ]);
     }
     catch (FeedsDisplayParserException $e) {
-      $this->logger->get('live_feeds')
-        ->error('Failed to parse the feed: "@feed": @message', [
-          '@feed' => $feed_url,
-          '@message' => $e->getMessage(),
-        ]);
+      $this->logger->error('Failed to parse the feed: "@feed": @message', [
+        '@feed' => $feed_url,
+        '@message' => $e->getMessage(),
+      ]);
     }
     return FALSE;
   }
