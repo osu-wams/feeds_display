@@ -140,7 +140,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       '#default_value' => $this->configuration['live_feeds_items_total'],
       '#weight' => '2',
       '#min' => 1,
-      '#max' => 10,
+      '#max' => 5,
       '#required' => TRUE,
     ];
     $form['live_feeds_news_word_limit'] = [
