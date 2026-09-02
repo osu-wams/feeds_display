@@ -211,6 +211,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       '#props' => [
         'wrapper_class' => $mode['wrapper'],
         'items' => $items,
+        'max_items' => $max_items,
       ],
       '#cache' => [
         'max-age' => 300,
@@ -266,6 +267,8 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
     }
     return [
       'title_link' => $item_title_link,
+      'title' =>$item->title,
+      'link' => $item->link,
       'date' => $pub_date,
       'timestamp' => $iso_date,
       'teaser' => [

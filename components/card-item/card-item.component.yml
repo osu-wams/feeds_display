@@ -9,6 +9,12 @@ slots:
 props:
   type: object
   properties:
+    title:
+      type: string
+      title: "Publication Title"
+    link:
+      type: string
+      title: "Publication URL"
     date:
       type: string
       title: "Publication Date"
