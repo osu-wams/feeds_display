@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\live_feeds;
 
 use Drupal\Core\Security\TrustedCallbackInterface;
@@ -14,7 +16,7 @@ class LiveFeedsSmartTrim implements TrustedCallbackInterface {
   /**
    * {@inheritDoc}
    */
-  public static function trustedCallbacks() {
+  public static function trustedCallbacks(): array {
     return ['liveFeedsLimit'];
   }
 
@@ -29,7 +31,7 @@ class LiveFeedsSmartTrim implements TrustedCallbackInterface {
    * @return string
    *   The truncated string.
    */
-  public function liveFeedsLimit($stringBig, $wordLimit) {
+  public function liveFeedsLimit(string $stringBig, int $wordLimit): string {
     $string = explode(' ', $stringBig);
     if (count($string) > $wordLimit) {
       return implode(' ', array_slice($string, 0, $wordLimit)) . " &hellip;";

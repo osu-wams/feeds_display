@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\live_feeds;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Security\TrustedCallbackInterface;
 use Drupal\live_feeds\Exception\FeedsDisplayParserException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
+use Psr\Log\LoggerInterface;
 
 /**
  * Simple class to provide functions for requesting RSS feeds.
@@ -15,37 +18,37 @@ use GuzzleHttp\Exception\RequestException;
  */
 class GetFeed implements TrustedCallbackInterface {
 
+  use LoggerChannelTrait;
+
   /**
    * The Guzzle HTTP Client.
    *
    * @var \GuzzleHttp\Client
    */
-  private $httpClient;
+  private ClientInterface $httpClient;
 
   /**
-   * The logger channel factory.
+   * The logger instance used for logging messages and errors.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   * @var \Psr\Log\LoggerInterface
    */
-  private LoggerChannelFactoryInterface $logger;
+  private LoggerInterface $logger;
 
   /**
    * Constructor.
    *
    * @param \GuzzleHttp\ClientInterface $httpClient
    *   The HTTP Client.
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
-   *   The logger factory.
    */
-  public function __construct(ClientInterface $httpClient, LoggerChannelFactoryInterface $logger_factory) {
+  public function __construct(ClientInterface $httpClient) {
     $this->httpClient = $httpClient;
-    $this->logger = $logger_factory;
+    $this->logger = $this->getLogger('live_feeds');
   }
 
   /**
    * {@inheritDoc}
    */
-  public static function trustedCallbacks() {
+  public static function trustedCallbacks(): array {
     return ['getFeed'];
   }
 
@@ -53,46 +56,34 @@ class GetFeed implements TrustedCallbackInterface {
    * Get the RSS feed from given URL.
    *
    * @param string $feed_url
-   *   The Feed url will attempt to retrieve.
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   */
-
-  /**
-   * Get the RSS feed from given URL.
-   *
-   * @param string $feed_url
    *   The feed URL to retrieve.
    *
-   * @return \SimpleXMLElement|false
+   * @return \SimpleXMLElement|false|null
    *   The feed as a SimpleXMLElement, or FALSE on failure.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getFeed($feed_url) {
+  public function getFeed($feed_url): \SimpleXMLElement | false | null {
     // Try to request the feed.
     try {
       $http_response = $this->httpClient->request('GET', $feed_url);
-      $response = $http_response->getBody();
+      $response = (string) $http_response->getBody();
 
       return $this->parseResponseToXml($response);
     }
     catch (RequestException $e) {
       // Log the failed request to watchdog.
-      $this->logger->get('live_feeds')
-        ->error('Failed request for "@feed": @message', [
-          '@feed' => $feed_url,
-          '@message' => $e->getMessage(),
-        ]);
+      $this->logger->error('Failed request for "@feed": @message', [
+        '@feed' => $feed_url,
+        '@message' => $e->getMessage(),
+      ]);
     }
     catch (FeedsDisplayParserException $e) {
-      $this->logger->get('live_feeds')
-        ->error('Failed to parse the feed: "@feed": @message', [
-          '@feed' => $feed_url,
-          '@message' => $e->getMessage(),
-        ]);
+      $this->logger->error('Failed to parse the feed: "@feed": @message', [
+        '@feed' => $feed_url,
+        '@message' => $e->getMessage(),
+      ]);
     }
-
     return FALSE;
   }
 

@@ -37,15 +37,16 @@
       width: 75px;
     }
   }
+
   .live-feeds-item__date {
     color: #565656;
     font-size: 0.93em;
     font-style: italic;
     white-space: nowrap;
   }
+
   .live-feeds-item__teaser {
     font-size: 0.93em;
     margin-top: .2em;
   }
 }
-

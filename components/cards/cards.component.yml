@@ -1,11 +1,11 @@
-name: Feed List
+name: Cards
 props:
   type: object
   properties:
     wrapper_class:
       type: string
     items:
-      titile: "Array of feed Items"
+      titile: "Array of Cards feed Items"
       type: array
       items:
         type: object

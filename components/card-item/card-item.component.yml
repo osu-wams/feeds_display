@@ -1,0 +1,26 @@
+name: Card Item
+slots:
+  title_link:
+    title: "Title Link"
+  thumbnail:
+    title: "Thumbnail"
+  teaser:
+    title: "Teaser"
+props:
+  type: object
+  properties:
+    title:
+      type: string
+      title: "Publication Title"
+    link:
+      type: string
+      title: "Publication URL"
+    date:
+      type: string
+      title: "Publication Date"
+    timestamp:
+      type: string
+      title: "Publication Timestamp"
+    category:
+      type: string
+      title: "First Category from the feed"

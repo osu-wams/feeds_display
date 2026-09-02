@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\live_feeds\Plugin\Block;
 
 use Drupal\Component\Utility\Xss;
@@ -8,12 +10,15 @@ use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Logger\LoggerChannelTrait;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\date_ap_style\ApStyleDateFormatter;
 use Drupal\live_feeds\GetFeed;
 use Drupal\live_feeds\LiveFeedsSmartTrim;
+use GuzzleHttp\Exception\GuzzleException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -26,26 +31,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 )]
 final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterface {
 
-  /**
-   * The Smart Trim.
-   *
-   * @var \Drupal\live_feeds\LiveFeedsSmartTrim
-   */
-  private $liveFeedsSmartTrim;
+  use LoggerChannelTrait;
 
   /**
-   * The AP Style date.
+   * The logger instance used for logging messages and errors.
    *
-   * @var \Drupal\date_ap_style\ApStyleDateFormatter
+   * @var \Psr\Log\LoggerInterface
    */
-  private ApStyleDateFormatter $apStyleDateFormatter;
-
-  /**
-   * The Live Feeds Service.
-   *
-   * @var \Drupal\live_feeds\GetFeed
-   */
-  private GetFeed $getFeed;
+  private LoggerInterface $logger;
 
   /**
    * Construct.
@@ -56,7 +49,7 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
    *   The plugin_id for the plugin instance.
    * @param string $plugin_definition
    *   The plugin implementation definition.
-   * @param \Drupal\live_feeds\LiveFeedsSmartTrim $live_feeds_smart_trim
+   * @param \Drupal\live_feeds\LiveFeedsSmartTrim $liveFeedsSmartTrim
    *   The Live Feeds trimmer.
    * @param \Drupal\live_feeds\GetFeed $getFeed
    *   Service to retrieve RSS feeds.
@@ -67,14 +60,12 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    LiveFeedsSmartTrim $live_feeds_smart_trim,
-    GetFeed $getFeed,
-    ApStyleDateFormatter $apStyleDateFormatter,
+    private readonly LiveFeedsSmartTrim $liveFeedsSmartTrim,
+    private readonly GetFeed $getFeed,
+    private readonly ApStyleDateFormatter $apStyleDateFormatter,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->liveFeedsSmartTrim = $live_feeds_smart_trim;
-    $this->getFeed = $getFeed;
-    $this->apStyleDateFormatter = $apStyleDateFormatter;
+    $this->logger = $this->getLogger('feeds_display');
   }
 
   /**
@@ -94,11 +85,11 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
   /**
    * {@inheritdoc}
    */
-  public function defaultConfiguration() {
+  public function defaultConfiguration(): array {
     return [
       'live_feeds_link' => '',
-      'live_feeds_items_total' => $this->t('5'),
-      'live_feeds_word_limit' => $this->t('30'),
+      'live_feeds_items_total' => 5,
+      'live_feeds_word_limit' => 30,
     ] + parent::defaultConfiguration();
   }
 
@@ -152,10 +143,16 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
   /**
    * {@inheritdoc}
    */
-  public function build() {
+  public function build(): array {
     $word_limit = (int) $this->configuration['live_feeds_word_limit'];
     $max_items = (int) $this->configuration['live_feeds_items_total'];
-    $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_link']));
+    try {
+      $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_link']));
+    }
+    catch (GuzzleException $e) {
+      $this->logger->error('Error fetching feed: @error', ['@error' => $e->getMessage()]);
+      return ['#markup' => 'There was an error loading the feed.'];
+    }
     if ($xml === FALSE) {
       return ['#markup' => 'There was an error loading the feed.'];
     }

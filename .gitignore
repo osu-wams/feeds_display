@@ -1,3 +1,18 @@
-.idea
-/vendor/
+/mix-manifest.json
 composer.lock
+/node_modules/
+/vendor/
+# Ignore compiled assets.
+# /dist/
+.DS_Store
+
+# Ignore IDE settings
+/.idea
+/.vim
+/.nvim.lua
+/.vscode
+# Docker composer overrides
+docker-compose.override.yml
+# Ignore logs and caches
+/*.log
+/*.cache
