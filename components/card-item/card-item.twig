@@ -2,10 +2,10 @@
 <div class="live-feeds-card-item position-relative flex-grow-1 gap-3 overflow-hidden w-100" style="--card-bg-image: url({{ thumbnail }});">
     <div class="live-feeds-card-item__wrapper h-100 d-flex flex-column justify-content-end p-3 osu-bg-before-dark
     osu-bg-before-dark-1">
+      <span class="live-feeds-card-item__category position-absolute start-0 top-0 ms-3 mt-3 fs-8 fw-medium text-uppercase">{{ category }}</span>
       <h3 class="live-feeds-card-item__title">
         <a class="live-feeds-card-item__link text-decoration-none link-secondary text-truncate line-truncate-1 stretched-link" href="{{ link }}">{{ title }}</a></h3>
-      <span class="live-feeds-card-item__category position-absolute start-0 top-0 ms-3 mt-3 fs-8 fw-medium text-uppercase">{{ category }}</span>
       <time class="live-feeds-card-item__date fst-italic fs-7" datetime="{{ timestamp }}">{{ date }}</time>
-      <span class="live-feeds-card-item__arrow bg-osuorange position-absolute end-0 bottom-0 me-3 mb-3 fa-solid fa-arrow-right fa-width-auto osu-icons p-2 rounded-circle"></span>
+      <span class="live-feeds-card-item__arrow bg-osuorange position-absolute end-0 bottom-0 me-2 mb-2 fa-solid fa-arrow-right fa-width-auto osu-icons p-2 rounded-circle"></span>
   </div>
 </div>
