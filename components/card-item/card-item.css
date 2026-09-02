@@ -43,6 +43,7 @@
   .live-feeds-card-item {
     flex-basis: 15rem;
     min-height: 10rem;
+    max-height: 90vh;
 
     &:first-child {
       grid-row: 1 / -1;
