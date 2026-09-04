@@ -115,7 +115,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       'live_feeds_news_link' => '',
       'live_feeds_items_total' => 5,
       'live_feeds_news_word_limit' => 30,
-      'live_feeds_news_display_mode' => 'default',
+      'live_feeds_news_display_mode' => 'list',
     ] + parent::defaultConfiguration();
   }
 
