@@ -1,4 +1,4 @@
-{#  feed-list.twig #}
+{# feed-list.twig #}
 <div class="{{ wrapper_class }}">
   {% for item in items %}
     {{ include('live_feeds:feed-item', {
@@ -6,7 +6,7 @@
       timestamp: item.timestamp,
       title_link: item.title_link,
       thumbnail: item.thumbnail,
-      teaser: item.teaser
-    }, with_context=false) }}
+      teaser: item.teaser,
+    }, with_context: false) }}
   {% endfor %}
 </div>

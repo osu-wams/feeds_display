@@ -1,4 +1,4 @@
-{#  cards.twig #}
+{# cards.twig #}
 <div class="{{ wrapper_class }} d-flex flex-column d-md-grid gap-3 text-secondary" data-items="{{ max_items }}">
   {% for item in items %}
     {{ include('live_feeds:card-item', {
@@ -9,7 +9,7 @@
       link: item.link,
       thumbnail: item.thumbnail,
       teaser: item.teaser,
-      category: item.category
-    }, with_context=false) }}
+      category: item.category,
+    }, with_context: false) }}
   {% endfor %}
 </div>
