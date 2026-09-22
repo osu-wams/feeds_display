@@ -35,8 +35,6 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
 
   /**
    * The logger instance used for logging messages and errors.
-   *
-   * @var \Psr\Log\LoggerInterface
    */
   private LoggerInterface $logger;
 
@@ -71,31 +69,6 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('live_feeds.live_feeds_smart_trim'),
-      $container->get('live_feeds.live_feed'),
-      $container->get('date_ap_style.formatter')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function defaultConfiguration(): array {
-    return [
-      'live_feeds_link' => '',
-      'live_feeds_items_total' => 5,
-      'live_feeds_word_limit' => 30,
-    ] + parent::defaultConfiguration();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function blockForm($form, FormStateInterface $form_state) {
     $form['live_feeds_link'] = [
       '#type' => 'textfield',
@@ -107,12 +80,19 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
       '#weight' => '1',
       '#required' => TRUE,
     ];
+    $form['live_feeds_cta_text'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Call to Action'),
+      '#description' => $this->t('Override the default "Read Full Story" link text. Leave blank to use the default value.'),
+      '#default_value' => $this->configuration['live_feeds_cta_text'],
+      '#weight' => '3',
+    ];
     $form['live_feeds_items_total'] = [
       '#type' => 'number',
       '#title' => $this->t('Number of Items to display.'),
       '#description' => $this->t('Enter a Number to change how many items are displayed in the block.'),
       '#default_value' => $this->configuration['live_feeds_items_total'],
-      '#weight' => '2',
+      '#weight' => '3',
       '#min' => 1,
       '#max' => 10,
       '#required' => TRUE,
@@ -122,7 +102,7 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
       '#title' => $this->t('Word Limit'),
       '#description' => $this->t('Enter a number to limit the number of words are displayed for each item. A value greater than 20 will use the teaser from the RSS feed.'),
       '#default_value' => $this->configuration['live_feeds_word_limit'],
-      '#weight' => '3',
+      '#weight' => '4',
       '#min' => 5,
       '#max' => 140,
       '#required' => TRUE,
@@ -135,8 +115,9 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
    * {@inheritdoc}
    */
   public function blockSubmit($form, FormStateInterface $form_state) {
-    $this->configuration['live_feeds_link'] = $form_state->getValue('live_feeds_link');
+    $this->configuration['live_feeds_cta_text'] = $form_state->getValue('live_feeds_cta_text');
     $this->configuration['live_feeds_items_total'] = $form_state->getValue('live_feeds_items_total');
+    $this->configuration['live_feeds_link'] = $form_state->getValue('live_feeds_link');
     $this->configuration['live_feeds_word_limit'] = $form_state->getValue('live_feeds_word_limit');
   }
 
@@ -146,18 +127,24 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
   public function build(): array {
     $word_limit = (int) $this->configuration['live_feeds_word_limit'];
     $max_items = (int) $this->configuration['live_feeds_items_total'];
+    $cta_text = trim((string) $this->configuration['live_feeds_cta_text']);
+    $read_more_text = !empty($cta_text) ? $cta_text : $this->t('Read full story');
+
     try {
       $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_link']));
     }
     catch (GuzzleException $e) {
       $this->logger->error('Error fetching feed: @error', ['@error' => $e->getMessage()]);
+
       return ['#markup' => 'There was an error loading the feed.'];
     }
+
     if ($xml === FALSE) {
       return ['#markup' => 'There was an error loading the feed.'];
     }
     $items = [];
     $current_count = 0;
+
     /** @var \SimpleXMLElement $item */
     foreach ($xml->channel->item as $item) {
       if (++$current_count > $max_items) {
@@ -166,7 +153,7 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
       $url = Url::fromUri((string) $item->link);
       $item_title_link = Link::fromTextAndUrl((string) $item->title, $url)
         ->toRenderable();
-      $read_more = Link::fromTextAndUrl($this->t('Read full story'), $url)
+      $read_more = Link::fromTextAndUrl($read_more_text, $url)
         ->toString();
       $thumb_url = (string) $item->enclosure['url'] ?? '';
       $filtered_description = Xss::filter($this->liveFeedsSmartTrim->liveFeedsLimit(trim((string) $item->description), $word_limit));
@@ -190,6 +177,7 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
         ] : [],
       ];
     }
+
     return [
       '#type' => 'component',
       '#component' => 'live_feeds:feed-list',
@@ -201,6 +189,32 @@ final class LiveFeeds extends BlockBase implements ContainerFactoryPluginInterfa
         'max-age' => 300,
       ],
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new self(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('live_feeds.live_feeds_smart_trim'),
+      $container->get('live_feeds.live_feed'),
+      $container->get('date_ap_style.formatter')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): array {
+    return [
+      'live_feeds_link' => '',
+      'live_feeds_items_total' => 5,
+      'live_feeds_word_limit' => 30,
+      'live_feeds_cta_text' => '',
+    ] + parent::defaultConfiguration();
   }
 
 }

@@ -60,8 +60,6 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
 
   /**
    * The logger instance used for logging messages and errors.
-   *
-   * @var \Psr\Log\LoggerInterface
    */
   private LoggerInterface $logger;
 
@@ -91,32 +89,6 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->logger = $this->getLogger('feeds_display');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('live_feeds.live_feeds_smart_trim'),
-      $container->get('live_feeds.live_feed'),
-      $container->get('date_ap_style.formatter')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function defaultConfiguration(): array {
-    return [
-      'live_feeds_news_link' => '',
-      'live_feeds_items_total' => 5,
-      'live_feeds_news_word_limit' => 30,
-      'live_feeds_news_display_mode' => 'list',
-    ] + parent::defaultConfiguration();
   }
 
   /**
@@ -184,19 +156,23 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
   public function build(): array {
     $word_limit = (int) $this->configuration['live_feeds_news_word_limit'];
     $max_items = (int) $this->configuration['live_feeds_items_total'];
+
     try {
       $xml = $this->getFeed->getFeed(($this->configuration['live_feeds_news_link']));
     }
     catch (GuzzleException $e) {
       $this->logger->error('Error fetching feed: @error', ['@error' => $e->getMessage()]);
+
       return ['#markup' => 'There was an error loading the feed.'];
     }
     $view_mode = $this->configuration['live_feeds_news_display_mode'];
+
     if ($xml === FALSE) {
       return ['#markup' => 'There was an error loading the feed.'];
     }
     $items = [];
     $current_count = 0;
+
     /** @var \SimpleXMLElement $item */
     foreach ($xml->channel->item as $item) {
       if (++$current_count > $max_items) {
@@ -205,6 +181,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       $items[] = $this->buildItem($item, $word_limit, $view_mode);
     }
     $mode = self::VIEW_MODE[$view_mode];
+
     return [
       '#type' => 'component',
       '#component' => $mode['component'],
@@ -217,6 +194,32 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
         'max-age' => 300,
       ],
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new self(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('live_feeds.live_feeds_smart_trim'),
+      $container->get('live_feeds.live_feed'),
+      $container->get('date_ap_style.formatter')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration(): array {
+    return [
+      'live_feeds_news_link' => '',
+      'live_feeds_items_total' => 5,
+      'live_feeds_news_word_limit' => 30,
+      'live_feeds_news_display_mode' => 'list',
+    ] + parent::defaultConfiguration();
   }
 
   /**
@@ -235,9 +238,11 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
    */
   private function buildItem(\SimpleXMLElement $item, int $wordLimit, string $viewMode): ?array {
     $itemLink = (string) $item->link;
+
     if ($itemLink === '') {
       return NULL;
     }
+
     try {
       $url = Url::fromUri((string) $item->link);
     }
@@ -245,7 +250,8 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
       return NULL;
     }
     $category = '';
-    if (is_countable($item->category) && count($item->category) > 0) {
+
+    if (is_countable($item->category) && \count($item->category) > 0) {
       $category = (string) $item->category[0];
     }
     $item_title_link = Link::fromTextAndUrl((string) $item->title, $url)
@@ -257,6 +263,7 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
     $filtered_description = Xss::filter($this->liveFeedsSmartTrim->liveFeedsLimit(trim((string) $item->description), $wordLimit));
     $teaser = $filtered_description . ' ' . $read_more;
     $timestamp = strtotime((string) $item->pubDate);
+
     if ($timestamp) {
       $pub_date = $this->apStyleDateFormatter->formatTimestamp($timestamp, ['always_display_year' => TRUE]);
       $iso_date = DrupalDateTime::createFromTimestamp($timestamp)
@@ -265,9 +272,10 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
     else {
       $pub_date = $iso_date = '';
     }
+
     return [
       'title_link' => $item_title_link,
-      'title' =>$item->title,
+      'title' => $item->title,
       'link' => $item->link,
       'date' => $pub_date,
       'timestamp' => $iso_date,
@@ -292,13 +300,15 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
    *   if the URL is empty, or a renderable array representing the thumbnail
    *   image.
    */
-  private function buildThumbnail(string $thumbUrl, string $viewMode): string | array {
+  private function buildThumbnail(string $thumbUrl, string $viewMode): array|string {
     if ($viewMode === 'card') {
       return $thumbUrl;
     }
+
     if ($thumbUrl === '') {
       return [];
     }
+
     return [
       '#theme' => 'image',
       '#uri' => $thumbUrl,
