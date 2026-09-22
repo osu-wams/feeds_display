@@ -37,7 +37,7 @@
   }
 
   @media(width > 768px) {
-    min-height: 32rem;
+    min-height: 500px;
   }
 
   .live-feeds-card-item {
