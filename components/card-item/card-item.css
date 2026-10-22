@@ -36,7 +36,7 @@
     }
   }
 
-  @media(width > 768px) {
+  @media (width > 768px) {
     min-height: 500px;
   }
 
@@ -78,7 +78,9 @@
     }
 
     .live-feeds-card-item__wrapper {
+      inset: 0;
       isolation: isolate;
+      position-try: absolute;
     }
 
     .live-feeds-card-item__title {
