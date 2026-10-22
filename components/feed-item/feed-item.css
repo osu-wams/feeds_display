@@ -26,12 +26,12 @@
   .live-feeds-item__image {
     clear: left;
     float: left;
-    margin-right: .5rem;
-    margin-top: .5rem;
+    margin-right: 0.5rem;
+    margin-top: 0.5rem;
 
     img {
       aspect-ratio: 1 / 1;
-      border-radius: .25rem;
+      border-radius: 0.25rem;
       height: auto;
       object-fit: cover;
       width: 75px;
@@ -47,6 +47,6 @@
 
   .live-feeds-item__teaser {
     font-size: 0.93em;
-    margin-top: .2em;
+    margin-top: 0.2em;
   }
 }

@@ -36,8 +36,8 @@ final class LiveFeedsNews extends BlockBase implements ContainerFactoryPluginInt
   /**
    * Defines the view modes for displaying live feeds.
    *
-   * This constant specifies the configuration for each view mode, including the components
-   * used for rendering and corresponding CSS wrapper classes.
+   * This constant specifies the configuration for each view mode, including
+   * the components used for rendering and corresponding CSS wrapper classes.
    *
    * Available view modes:
    * - 'list': Displays feeds in a list format.

@@ -1,6 +1,7 @@
 .live-feeds--cards {
   --animation-speed: 400ms;
   --hover-scale: 1.05;
+
   &[data-items="5"] {
     grid-template-columns: 2fr 1fr 1fr;
     grid-template-rows: repeat(3, 1fr);
@@ -36,7 +37,7 @@
     }
   }
 
-  @media(width > 768px) {
+  @media (width > 768px) {
     min-height: 500px;
   }
 
