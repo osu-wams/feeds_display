@@ -101,7 +101,7 @@ class GetFeed implements TrustedCallbackInterface {
    */
   private function parseResponseToXml(string $response): ?\SimpleXMLElement {
     $cleaned_response = preg_replace(['/[^[:print:]\r\n]/', '/&nbsp;/'], '', $response);
-    $feedXml = simplexml_load_string($cleaned_response, 'SimpleXMLElement', LIBXML_HTML_NOIMPLIED | LIBXML_NOCDATA | LIBXML_NOBLANKS );
+    $feedXml = simplexml_load_string($cleaned_response, 'SimpleXMLElement', LIBXML_HTML_NOIMPLIED | LIBXML_NOCDATA | LIBXML_NOBLANKS);
 
     if ($feedXml === FALSE) {
       throw new FeedsDisplayParserException('Failed to parse the feed');
